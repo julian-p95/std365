@@ -1,87 +1,67 @@
-import streamlit as st
 import pandas as pd
-import networkx as nx
-from pyvis.network import Network
-from collections import Counter
 import random
+# from pyvis.network import Network  # Décommentez cette ligne dans votre environnement
 
-# Générer une couleur aléatoire
+# Fonction pour générer une couleur aléatoire
 def random_color():
-  return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-# Chargement des fichiers
-uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])
-uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx']) 
-uploaded_file_field_list = st.file_uploader("Upload Table and Field List.xlsx", type=['xlsx'])
+# Chargement des fichiers Excel
+try:
+    erp_all_table_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+    d365fo = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
+    field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
+    # Vérification des colonnes
+    assert all(col in erp_all_table_relations.columns for col in ['Table Parent', 'Table Enfant', 'Lien 1'])
+    assert all(col in d365fo.columns for col in ['Table name', 'App module'])
+    assert all(col in field_list.columns for col in ['TABLE_NAME', 'COLUMN_NAME', 'DATA_TYPE'])
+except Exception as e:
+    print(f"Erreur lors du chargement des fichiers ou des colonnes manquantes: {e}")
+    exit()
 
-if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
-  
-  # Lecture des données
-  erp_all_table_relations = pd.read_excel(uploaded_file_erp)
-  d365fo = pd.read_excel(uploaded_file_d365fo)
-  field_list = pd.read_excel(uploaded_file_field_list, sheet_name='Field List')
+# Comptage des relations entre tables
+table_counts = (erp_all_table_relations['Table Parent'].append(erp_all_table_relations['Table Enfant'])).value_counts().reset_index()
+table_counts.columns = ['Table', 'Count']
 
-  # Comptage des relations
-  table_counts = erp_all_table_relations['Table Parent'].value_counts() + erp_all_table_relations['Table Enfant'].value_counts()
-  table_counts = table_counts.reset_index()
-  table_counts.columns = ['Table', 'Count']
+# Jointure avec les informations de D365FO
+table_counts = table_counts.merge(d365fo[['Table name', 'App module']], left_on='Table', right_on='Table name', how='left')
 
-  # Jointure avec d365fo
-  table_counts = table_counts.merge(d365fo[['Table name','App module']], left_on='Table', right_on='Table name')
+# Sélection du module d'application (à remplacer par un choix utilisateur dans Streamlit)
+app_module = 'ModuleName'  # À remplacer
 
-  # Sélection du module
-  app_module = st.selectbox('App Module:', table_counts['App module'].unique())
+# Filtrage des tables par module d'application
+filtered_tables = table_counts[table_counts['App module'] == app_module]
 
-  # Filtrage des tables
-  filtered_tables = table_counts[table_counts['App module'] == app_module]
+# Tables à afficher (limite fixée à 10 pour cet exemple)
+top_tables = filtered_tables.nlargest(10, 'Count')['Table'].tolist()
 
-  # Slider pour limiter les tables
-  num_tables = st.slider('Number of tables:', min_value=1, max_value=len(filtered_tables), value=10)
-  
-  # Tables à afficher
-  top_tables = filtered_tables.nlargest(num_tables, 'Count')['Table'].tolist()
+# Filtrage des relations
+filtered_relations = erp_all_table_relations[
+    erp_all_table_relations['Table Parent'].isin(top_tables) |
+    erp_all_table_relations['Table Enfant'].isin(top_tables)
+]
 
-  # Filtrage des relations
-  filtered_relations = erp_all_table_relations[
-      erp_all_table_relations['Table Parent'].isin(top_tables) |
-      erp_all_table_relations['Table Enfant'].isin(top_tables)
-  ]
+# Création du graphe avec PyVis
+net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
-  # Création du graphe
-  G = nx.Graph()
-  for _, row in filtered_relations.iterrows():
-    G.add_edge(row['Table Parent'], row['Table Enfant'], title=row['Lien 1'])
-
-  # Création du graphe PyVis
-  net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
-  
-  # Ajout des noeuds
-  for node in top_tables:
-    net.add_node(node)
+# Ajout des nœuds et des arêtes
+for _, row in filtered_relations.iterrows():
+    parent = row['Table Parent']
+    child = row['Table Enfant']
+    relation = row['Lien 1']
     
-  # Ajout des arêtes  
-  for _, row in filtered_relations.iterrows():
-    if row['Table Parent'] in top_tables or row['Table Enfant'] in top_tables:
-      net.add_edge(row['Table Parent'], row['Table Enfant'])
-
-  # Couleurs et infos bulles
-  for node in top_tables:
-    
-    node_info = filtered_tables[filtered_tables['Table'] == node]
-    
-    if not node_info.empty:
+    # Ajout des nœuds s'ils n'existent pas encore
+    if parent not in net.nodes:
+        parent_info = field_list[field_list['TABLE_NAME'] == parent]
+        parent_title = "<br>".join(parent_info['COLUMN_NAME'].astype(str) + ' (' + parent_info['DATA_TYPE'].astype(str) + ')')
+        net.add_node(parent, title=parent_title, color=random_color())
+    if child not in net.nodes:
+        child_info = field_list[field_list['TABLE_NAME'] == child]
+        child_title = "<br>".join(child_info['COLUMN_NAME'].astype(str) + ' (' + child_info['DATA_TYPE'].astype(str) + ')')
+        net.add_node(child, title=child_title, color=random_color())
         
-      node_module = node_info['App module'].values[0]
-      node_color = random_color()
-      net.get_node(node)['color'] = node_color
-      
-      columns_info = field_list[field_list['TABLE_NAME'] == node]
-      title_str = "<br>".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
-      net.get_node(node)['title'] = title_str
-  
-  # Affichage
-  net.show("temp.html")
-  with open("temp.html", 'r', encoding='utf-8') as f:
-    source_code = f.read()
+    # Ajout de l'arête
+    net.add_edge(parent, child, title=relation)
 
-  st.components.v1.html(source_code, height=800)
+# Affichage du graphe (à remplacer par le code Streamlit approprié)
+# net.show("temp.html")
