@@ -1,9 +1,13 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import networkx as nx
 from pyvis.network import Network
 from collections import Counter
+import random
+
+# Générer une couleur aléatoire
+def random_color():
+    return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 # Upload des fichiers Excel
 uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])  # Upload ERP
@@ -39,7 +43,7 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None:
 
     # Mise à jour du slider en fonction du nombre de tables disponibles
     max_tables = len(filtered_tables)
-    num_tables = st.slider('Nombre de tables:', min_value=1, max_value=max_tables, value=min(10, max_tables))  # Slider
+    num_tables = st.slider('Nombre de tables:', min_value=1, max_value=max_tables, value=min(10, max_tables))
 
     # Trouver les 'num_tables' tables avec le plus d'associations
     top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table']
@@ -50,11 +54,36 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None:
         erp_all_table_relations['Table Enfant'].isin(top_tables)
     ]
     
-    # [Section graphique ici]
+    # Création du graphe avec NetworkX
+    G = nx.Graph()
+    for _, row in filtered_relations.iterrows():
+        G.add_edge(row['Table Parent'], row['Table Enfant'])
+    
+    # Création du graphe avec PyVis
+    net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
+    net.from_nx(G)
+
+    # Assignation des couleurs par module d'application
+    color_map = {}
+    for app_module in app_modules:
+        color_map[app_module] = random_color()
+
+    for node in G.nodes():
+        node_info = df_total_counter.loc[df_total_counter['Table'] == node, 'App module']
+        if not node_info.empty:
+            node_module = node_info.iloc[0]
+            net.get_node(node)['color'] = color_map.get(node_module, "#000000")
+    
+    # Affichage du graphique dans Streamlit
+    net.save_graph("temp.html")
+    with open("temp.html", 'r', encoding='utf-8') as f:
+        source_code = f.read()
+    st.components.v1.html(source_code, height=800)
 
     # Afficher la légende des couleurs
     st.write("Légende des couleurs:")
-    st.write(f"Module d'application sélectionné : Rouge")
-    st.write(f"Autres : Vert")
-
-    # [Section tableau ici]
+    for app_module, color in color_map.items():
+        st.write(f"{app_module} : {color}")
+    
+    # Afficher le tableau des tables
+    st.table(filtered_tables[['Table', 'Total Associations']].sort_values('Total Associations', ascending=False))
