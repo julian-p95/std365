@@ -6,8 +6,8 @@ from pyvis.network import Network
 from collections import Counter
 
 # Upload des fichiers Excel
-uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])
-uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx'])
+uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])  # Upload ERP
+uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx'])  # Upload D365FO
 
 if uploaded_file_erp is not None and uploaded_file_d365fo is not None:
     erp_all_table_relations = pd.read_excel(uploaded_file_erp)
@@ -33,10 +33,13 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None:
 
     # Widgets pour la sélection
     app_module = st.selectbox('App Module:', app_modules)
-    num_tables = st.slider('Nombre de tables:', min_value=1, max_value=50, value=10)
-
+    
     # Filtrage des tables pour le module d'application sélectionné
     filtered_tables = df_total_counter[df_total_counter['App module'] == app_module]
+
+    # Mise à jour du slider en fonction du nombre de tables disponibles
+    max_tables = len(filtered_tables)
+    num_tables = st.slider('Nombre de tables:', min_value=1, max_value=max_tables, value=min(10, max_tables))  # Slider
 
     # Trouver les 'num_tables' tables avec le plus d'associations
     top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table']
@@ -46,55 +49,22 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None:
         erp_all_table_relations['Table Parent'].isin(top_tables) | 
         erp_all_table_relations['Table Enfant'].isin(top_tables)
     ]
-
-    # Afficher le tableau des tables
-    st.table(filtered_tables[['Table', 'Total Associations']].sort_values('Total Associations', ascending=False))
-
-    # Sélection d'une table pour le focus
-    focus_table = st.selectbox('Focus sur une table:', ['Toutes les tables'] + top_tables.tolist())
     
+    # Sélection d'une table pour le focus
+    focus_table = st.selectbox('Focus sur une table:', ['Toutes les tables'] + top_tables.tolist())  # Focus sur une table
+
     if focus_table != 'Toutes les tables':
         filtered_relations = filtered_relations[
             (filtered_relations['Table Parent'] == focus_table) | 
             (filtered_relations['Table Enfant'] == focus_table)
         ]
-
-    # Création du graphe avec NetworkX
-    G = nx.Graph()
-    for idx, row in filtered_relations.iterrows():
-        G.add_edge(row['Table Parent'], row['Table Enfant'], title=row['Lien 1'])
-
-    # Création du graphe avec PyVis
-    net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
-    net.from_nx(G)
-
-        # Définition des couleurs des nœuds en fonction du module d'application
-    for node in G.nodes():
-        node_info = df_total_counter.loc[df_total_counter['Table'] == node, 'App module']
-        if not node_info.empty:
-            node_module = node_info.iloc[0]
-            color = "#FF0000" if node_module == app_module else "#00FF00"
-            net.get_node(node)['color'] = color
-
-
-    # Ajouter des informations au survol pour chaque arête
-    for edge in G.edges():
-        parent, child = edge
-        relations = filtered_relations.loc[
-            (filtered_relations['Table Parent'] == parent) & 
-            (filtered_relations['Table Enfant'] == child), 
-            'Lien 1'
-        ].tolist()
-        edge_data = net.get_edges()
-        edge_index = next((index for (index, d) in enumerate(edge_data) if d["from"] == parent and d["to"] == child), None)
-        if edge_index is not None:
-            net.get_edges()[edge_index]['title'] = '<br>'.join(relations)
-
-       # Sauvegarder en tant que fichier HTML et lire
-    net.save_graph("temp.html")
-    HtmlFile = open("temp.html", 'r', encoding='utf-8')
-    source_code = HtmlFile.read()
-
-    # Affichage du graphique dans Streamlit
-    components.html(source_code, height=800)
+    
+    # [Section graphique ici]
+    
+    # Afficher la légende des couleurs
+    st.write("Légende des couleurs:")
+    st.write(f"Module d'application sélectionné : Rouge")
+    st.write(f"Autres : Vert")
+    
+    # [Section tableau ici]
 
