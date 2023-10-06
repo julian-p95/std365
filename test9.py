@@ -14,6 +14,7 @@ uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xls
 uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx'])
 uploaded_file_field_list = st.file_uploader("Upload Table and Field List.xlsx", type=['xlsx'])
 
+
 if uploaded_file_erp is not None and uploaded_file_d365fo is not None and uploaded_file_field_list is not None:
     erp_all_table_relations = pd.read_excel(uploaded_file_erp)
     d365fo = pd.read_excel(uploaded_file_d365fo)
