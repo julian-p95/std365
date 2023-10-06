@@ -21,6 +21,7 @@ tablefieldassociations_json = pd.read_json("tablefieldassociations.json")
 parent_counter = erp_all_table_relations['Table Parent'].value_counts()
 child_counter = erp_all_table_relations['Table Enfant'].value_counts()
 
+
 # Calcul du total des relations pour chaque table
 total_counter = parent_counter.add(child_counter, fill_value=0).astype(int)
 
