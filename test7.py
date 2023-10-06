@@ -100,8 +100,8 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None and upload
     HtmlFile = open("temp.html", 'r', encoding='utf-8')
     source_code = HtmlFile.read()
 
-    # Affichage du graphique dans Streamlit
-    graph_placeholder.html(source_code, height=800)
+    # Affichage du graphique dans Streamlit avec 'components.html'
+    components.html(source_code, height=800)
 
     # Génération de la légende des couleurs
     legend_markdown = "### Légende\n"
