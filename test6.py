@@ -50,21 +50,11 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None:
         erp_all_table_relations['Table Enfant'].isin(top_tables)
     ]
     
-    # Sélection d'une table pour le focus
-    focus_table = st.selectbox('Focus sur une table:', ['Toutes les tables'] + top_tables.tolist())  # Focus sur une table
-
-    if focus_table != 'Toutes les tables':
-        filtered_relations = filtered_relations[
-            (filtered_relations['Table Parent'] == focus_table) | 
-            (filtered_relations['Table Enfant'] == focus_table)
-        ]
-    
     # [Section graphique ici]
-    
+
     # Afficher la légende des couleurs
     st.write("Légende des couleurs:")
     st.write(f"Module d'application sélectionné : Rouge")
     st.write(f"Autres : Vert")
-    
-    # [Section tableau ici]
 
+    # [Section tableau ici]
