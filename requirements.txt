@@ -1,7 +1,7 @@
-streamlit==1.0.0
-pandas==1.3.3
-networkx==2.6.3
-pyvis==0.1.9
-matplotlib==3.4.3
-seaborn==0.11.2
-openpyxl==3.0.9
+streamlit
+pandas
+networkx
+pyvis
+matplotlib
+seaborn
+openpyxl
