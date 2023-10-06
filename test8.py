@@ -45,7 +45,7 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None and upload
     # Sélection des 'num_tables' tables avec le plus grand nombre de relations
     top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table'].tolist()
 
-    # Filtrage des relations de table pour inclure ces tables + tables liées
+    # Filtrage des relations de table pour inclure uniquement les top_tables
     filtered_relations = erp_all_table_relations[
         erp_all_table_relations['Table Parent'].isin(top_tables) | 
         erp_all_table_relations['Table Enfant'].isin(top_tables)
@@ -80,11 +80,6 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None and upload
     with open("temp.html", 'r', encoding='utf-8') as f:
         source_code = f.read()
     st.components.v1.html(source_code, height=800)
-
-    # Afficher la légende des couleurs
-    st.write("Légende des couleurs:")
-    for app_module, color in color_map.items():
-        st.write(f"{app_module} : {color}")
 
     # Afficher le tableau des tables
     st.table(filtered_tables[['Table', 'Total Associations']].sort_values('Total Associations', ascending=False))
