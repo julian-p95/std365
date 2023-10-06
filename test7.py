@@ -6,7 +6,6 @@ from pyvis.network import Network
 from collections import Counter
 
 # Chargement des fichiers Excel
-# Chargement des fichiers
 uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])
 uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx'])
 uploaded_file_table_field = st.file_uploader("Upload Table and Field List.xlsx", type=['xlsx'])
@@ -39,24 +38,25 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None and upload
     # Création du graphe avec PyVis
     net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
-    # Ajout des nœuds et des arêtes
-    for edge in G.edges(data=True):
-        parent, child, data = edge
-        net.add_edge(parent, child, title=data['title'])
-
+    # Ajout des nœuds avec métadonnées
     for node in G.nodes():
         node_info = df_total_counter.loc[df_total_counter['Table'] == node, 'App module']
         if not node_info.empty:
             node_module = node_info.iloc[0]
-
+            
             # Récupération des champs et des types pour cette table
             fields = table_field[table_field['TABLE_NAME'] == node]
             fields_desc = ", ".join([f"{row['COLUMN_NAME']} ({row['DATA_TYPE']})" for _, row in fields.iterrows()])
-
+            
             # Ajout des métadonnées au nœud
             title = f"Table: {node}<br>App Module: {node_module}<br>Fields: {fields_desc}"
             net.add_node(node, title=title)
-
+    
+    # Ajout des arêtes
+    for edge in G.edges(data=True):
+        parent, child, data = edge
+        net.add_edge(parent, child, title=data['title'])
+    
     # Sauvegarder en tant que fichier HTML et lire
     net.save_graph("temp.html")
     HtmlFile = open("temp.html", 'r', encoding='utf-8')
