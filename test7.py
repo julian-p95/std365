@@ -14,7 +14,7 @@ if uploaded_file_erp is not None and uploaded_file_d365fo is not None and upload
     
     erp_all_table_relations = pd.read_excel(uploaded_file_erp)
     d365fo = pd.read_excel(uploaded_file_d365fo)
-    table_field = pd.read_excel(uploaded_file_table_field)
+    table_field = pd.read_excel(uploaded_file_table_field, sheet_name="Field List")
 
     # Création du graphe avec NetworkX
     st.write("Création du graphe...")
