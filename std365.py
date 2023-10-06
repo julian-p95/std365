@@ -8,7 +8,8 @@ import seaborn as sns
 # Lecture des fichiers Excel (chemins relatifs)
 # Charger les fichiers dans des DataFrames
 erp_all_table_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx")
-d365fo = pd.read_excel("D365FO.xlsx")
+d365fo = pd.read_excel("D365FO.xlsx") 
+
 
 # Lecture des fichiers JSON
 # Charger les fichiers JSON dans des DataFrames
