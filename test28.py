@@ -73,7 +73,13 @@ linked_tables = filtered_relations['Table Parent'].unique().tolist() + filtered_
 linked_tables = set(linked_tables) - graphed_tables
 
 for table in linked_tables:
-    app_module_linked = d365_tables.loc[d365_tables['Table name'] == table, 'App module'].iloc[0]
+    app_module_linked_series = d365_tables.loc[d365_tables['Table name'] == table, 'App module']
+    
+    if not app_module_linked_series.empty:
+        app_module_linked = app_module_linked_series.iloc[0]
+    else:
+        app_module_linked = 'Inconnu'  # ou toute autre valeur par défaut
+    
     color = app_module_colors.get(app_module_linked, random_color())
     columns_info = field_list[field_list['TABLE_NAME'] == table]
     title_str = "Table: " + table + "\nApp Module: " + app_module_linked + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
