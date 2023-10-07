@@ -4,16 +4,16 @@ from pyvis.network import Network
 from collections import Counter
 import random
 
-# Fonction pour générer une couleur aléatoire
+# Générer une couleur aléatoire
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-# Upload des fichiers Excel
+# Upload des fichiers
 uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])
 uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx'])
 uploaded_file_field_list = st.file_uploader("Upload Table and Field List.xlsx", type=['xlsx'])
 
-# Vérification que tous les fichiers sont chargés
+# Vérifier les uploads
 if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
     erp_relations_df = pd.read_excel(uploaded_file_erp)
     d365_table_df = pd.read_excel(uploaded_file_d365fo, sheet_name='D365 Table')
@@ -53,26 +53,29 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
         erp_relations_df['Table Enfant'].isin(top_tables)
     ]
 
-    # Création du graphe avec PyVis
+    # Tous les nœuds potentiels
+    all_nodes = set(filtered_relations['Table Parent']).union(set(filtered_relations['Table Enfant']))
+
+    # Création du graphe
     net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
-    # Assignation des couleurs
+    # Couleurs
     color_map = {}
     for app_module in app_modules:
         color_map[app_module] = random_color()
 
-    # Ajout des nœuds d'abord
-    for table in top_tables:
-        fields = ', '.join(field_list_df[field_list_df['TABLE_NAME'] == table]['COLUMN_NAME'].astype(str).tolist())
-        net.add_node(table, title=f"<h4>{table}</h4><p>Champs: {fields}</p>")
+    # Ajout des nœuds
+    for node in all_nodes:
+        fields = ', '.join(field_list_df[field_list_df['TABLE_NAME'] == node]['COLUMN_NAME'].astype(str).tolist())
+        net.add_node(node, title=f"<h4>{node}</h4><p>Champs: {fields}</p>")
 
-    # Ajout des arêtes ensuite
+    # Ajout des arêtes
     for _, row in filtered_relations.iterrows():
         parent, child = row['Table Parent'], row['Table Enfant']
         relation_info = row['Lien 1']
         net.add_edge(parent, child, title=relation_info)
 
-    # Configuration des couleurs
+    # Couleurs
     for node in net.nodes:
         node_info = table_counts.loc[table_counts['Table'] == node['id'], 'App module']
         if not node_info.empty:
@@ -85,10 +88,10 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
         source_code = f.read()
     st.components.v1.html(source_code, height=800)
 
-    # Afficher la légende
+    # Légende
     st.write("Légende des couleurs:")
     for app_module, color in color_map.items():
         st.write(f"{app_module} : {color}")
 
-    # Afficher le tableau
+    # Tableau
     st.table(filtered_tables[['Table', 'Total Associations']].sort_values('Total Associations', ascending=False))
