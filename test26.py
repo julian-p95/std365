@@ -66,12 +66,20 @@ for table in top_tables:
     net.add_node(table, title=title_str, color=color)
     graphed_tables.add(table)
 
+# ... (code précédent inchangé)
+
 # Ajout des arêtes avec leurs attributs
 for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
     relation = row['Lien 1']
-    net.add_edge(parent, child, title=relation)
+    
+    # Vérifiez que les nœuds existent avant d'ajouter une arête
+    if parent in graphed_tables and child in graphed_tables:
+        net.add_edge(parent, child, title=relation)
+
+# ... (reste du code inchangé)
+
 
 # Tableau d'informations sur les tables graphées
 graphed_table_info = d365_tables[d365_tables['Table name'].isin(graphed_tables)]
