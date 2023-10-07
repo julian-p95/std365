@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import networkx as nx
 from pyvis.network import Network
 from collections import Counter
 import random
@@ -20,7 +19,7 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
     d365_table_df = pd.read_excel(uploaded_file_d365fo, sheet_name='D365 Table')
     field_list_df = pd.read_excel(uploaded_file_field_list, sheet_name='Field List')
 
-    # Comptage des relations
+    # Comptage des relations entre tables
     total_counter = Counter(erp_relations_df['Table Parent']) + Counter(erp_relations_df['Table Enfant'])
 
     # Conversion en DataFrame
@@ -39,7 +38,7 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
     # Sélection du module
     app_module = st.selectbox('App Module:', app_modules)
 
-    # Filtrage des tables
+    # Filtrage des tables par module
     filtered_tables = table_counts[table_counts['App module'] == app_module]
 
     # Nombre de tables à afficher
@@ -56,7 +55,7 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
 
     # Création du graphe avec PyVis
     net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
-    
+
     # Assignation des couleurs
     color_map = {}
     for app_module in app_modules:
@@ -66,16 +65,14 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
     for _, row in filtered_relations.iterrows():
         parent, child = row['Table Parent'], row['Table Enfant']
         relation_info = row['Lien 1']
-        
-        # Récupération des champs de chaque table parent et enfant
-        parent_fields = ', '.join(field_list_df[field_list_df['TABLE_NAME'] == parent]['COLUMN_NAME'].tolist())
-        child_fields = ', '.join(field_list_df[field_list_df['TABLE_NAME'] == child]['COLUMN_NAME'].tolist())
-        
-        # Ajout des nœuds avec les champs comme titre
+
+        # Récupération des champs
+        parent_fields = ', '.join(field_list_df[field_list_df['TABLE_NAME'] == parent]['COLUMN_NAME'].astype(str).tolist())
+        child_fields = ', '.join(field_list_df[field_list_df['TABLE_NAME'] == child]['COLUMN_NAME'].astype(str).tolist())
+
+        # Ajout des nœuds et des arêtes
         net.add_node(parent, title=f"<h4>{parent}</h4><p>Champs: {parent_fields}</p>")
         net.add_node(child, title=f"<h4>{child}</h4><p>Champs: {child_fields}</p>")
-        
-        # Ajout des arêtes avec les informations de relation comme titre
         net.add_edge(parent, child, title=relation_info)
 
     # Configuration des couleurs
