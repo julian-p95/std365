@@ -64,7 +64,7 @@ graphed_tables = set()
 for table in top_tables:
     color = app_module_colors.get(app_module, random_color())
     columns_info = field_list[field_list['TABLE_NAME'] == table]
-    title_str = "Table: " + table + "\nApp Module: " + app_module + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
+    title_str = "Table: " + str(table) + "\nApp Module: " + str(app_module) + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
     net.add_node(table, title=title_str, color=color)
     graphed_tables.add(table)
 
@@ -82,7 +82,7 @@ for table in linked_tables:
     
     color = app_module_colors.get(app_module_linked, random_color())
     columns_info = field_list[field_list['TABLE_NAME'] == table]
-    title_str = "Table: " + table + "\nApp Module: " + app_module_linked + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
+    title_str = "Table: " + str(table) + "\nApp Module: " + str(app_module_linked) + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
     net.add_node(table, title=title_str, color=color)
     graphed_tables.add(table)
 
