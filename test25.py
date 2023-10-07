@@ -73,7 +73,9 @@ for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
     relation = row['Lien 1']
-    net.add_edge(parent, child, title=relation)
+    if parent in top_tables and child in top_tables:
+        net.add_edge(parent, child, title=relation)
+
 
 # Affichage du graphe
 net.save_graph("temp.html")
