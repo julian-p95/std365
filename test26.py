@@ -73,15 +73,30 @@ for table in top_tables:
     net.add_node(table, title=title_str, color=color)
     graphed_tables.add(table)
 
+# ... (code précédent inchangé)
+
 # Ajout des arêtes avec leurs attributs
 for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
     relation = row['Lien 1']
+    
     if parent in top_tables or child in top_tables:
+        # Ajout des nœuds manquants
+        for node in [parent, child]:
+            if node not in graphed_tables:
+                node_app_module = df_total_counter[df_total_counter['Table'] == node]['App module'].iloc[0]
+                color = app_module_colors.get(node_app_module, random_color())
+                columns_info = field_list[field_list['TABLE_NAME'] == node]
+                title_str = "Table: " + node + "\nApp Module: " + str(node_app_module) + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
+                net.add_node(node, title=title_str, color=color)
+                graphed_tables.add(node)
+
+        # Ajout de l'arête
         net.add_edge(parent, child, title=relation)
-        graphed_tables.add(parent)
-        graphed_tables.add(child)
+
+# ... (code suivant inchangé)
+
 
 # Tableau d'informations sur les tables graphées
 graphed_table_info = d365_tables[d365_tables['Table name'].isin(graphed_tables)]
