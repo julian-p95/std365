@@ -33,13 +33,6 @@ df_total_counter.rename(columns={'index': 'Table'}, inplace=True)
 # Jointure pour récupérer les modules d'application
 df_total_counter = df_total_counter.merge(d365_tables[['Table name', 'App module']], left_on='Table', right_on='Table name', how='left')
 
-# Slider pour limiter le nombre de tables chargées par module
-max_tables_per_module = st.slider('Max de tables par module:', min_value=1, max_value=100, value=20)
-
-# Filtrer les top tables par App Module
-grouped = df_total_counter.groupby('App module')
-filtered_top_tables = pd.concat([group.nlargest(max_tables_per_module, 'Total Associations') for _, group in grouped])
-
 # Liste des modules d'application
 app_modules = d365_tables['App module'].unique().tolist()
 
@@ -47,7 +40,7 @@ app_modules = d365_tables['App module'].unique().tolist()
 app_module = st.selectbox('Module d\'Application:', app_modules)
 
 # Filtrage des tables pour le module d'application sélectionné
-filtered_tables = filtered_top_tables[filtered_top_tables['App module'] == app_module]
+filtered_tables = df_total_counter[df_total_counter['App module'] == app_module]
 
 # Slider pour le nombre de tables
 num_tables = st.slider('Nombre de tables:', min_value=1, max_value=len(filtered_tables), value=10)
@@ -73,34 +66,19 @@ for table in top_tables:
     net.add_node(table, title=title_str, color=color)
     graphed_tables.add(table)
 
-# ... (code précédent inchangé)
-
 # Ajout des arêtes avec leurs attributs
 for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
     relation = row['Lien 1']
-    
-    if parent in top_tables or child in top_tables:
-        # Ajout des nœuds manquants
-        for node in [parent, child]:
-            if node not in graphed_tables:
-                node_app_module = df_total_counter[df_total_counter['Table'] == node]['App module'].iloc[0]
-                color = app_module_colors.get(node_app_module, random_color())
-                columns_info = field_list[field_list['TABLE_NAME'] == node]
-                title_str = "Table: " + node + "\nApp Module: " + str(node_app_module) + "\nChamps:\n" + "\n".join(columns_info['COLUMN_NAME'].astype(str) + ' (' + columns_info['DATA_TYPE'].astype(str) + ')')
-                net.add_node(node, title=title_str, color=color)
-                graphed_tables.add(node)
-
-        # Ajout de l'arête
-        net.add_edge(parent, child, title=relation)
-
-# ... (code suivant inchangé)
-
+    net.add_edge(parent, child, title=relation)
 
 # Tableau d'informations sur les tables graphées
 graphed_table_info = d365_tables[d365_tables['Table name'].isin(graphed_tables)]
-graphed_table_info = graphed_table_info[['Table name', 'Table label', 'App module', 'Table group', 'Table type']]
+
+# Utilisez seulement les colonnes qui existent dans le DataFrame
+available_columns = [col for col in ['Table name', 'Table label', 'App module', 'Table group', 'Tabletype'] if col in graphed_table_info.columns]
+graphed_table_info = graphed_table_info[available_columns]
 
 # Vérifier si les colonnes existent avant de fusionner
 if 'TABLE_NAME' in field_list.columns and 'TABLE_TYPE' in field_list.columns:
