@@ -14,14 +14,11 @@ erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table').applymap(str.upper)
 field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List').applymap(str.upper)
 
-
-# Convertir explicitement en chaînes de caractères et ensuite en majuscules
-erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.upper()
-erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.upper()
-d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
-field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
-field_list['COLUMN_NAME'] = field_list['COLUMN_NAME'].astype(str).str.upper()
-field_list['DATA_TYPE'] = field_list['DATA_TYPE'].astype(str).str.upper()
+# Convertir les noms de table en majuscules pour assurer la correspondance
+erp_relations['Table Parent'] = erp_relations['Table Parent'].str.upper()
+erp_relations['Table Enfant'] = erp_relations['Table Enfant'].str.upper()
+d365_tables['Table name'] = d365_tables['Table name'].str.upper()
+field_list['TABLE_NAME'] = field_list['TABLE_NAME'].str.upper()
 
 # Générer un dictionnaire de couleurs pour chaque App module
 app_module_colors = {module: random_color() for module in d365_tables['App module'].unique()}
