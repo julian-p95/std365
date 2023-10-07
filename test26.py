@@ -100,8 +100,14 @@ for _, row in filtered_relations.iterrows():
 
 # Tableau d'informations sur les tables graphées
 graphed_table_info = d365_tables[d365_tables['Table name'].isin(graphed_tables)]
-graphed_table_info = graphed_table_info.merge(field_list[['TABLE_NAME', 'TABLE_TYPE']], left_on='Table name', right_on='TABLE_NAME', how='left')
-graphed_table_info = graphed_table_info[['Table name', 'Table label', 'App module', 'Table group', 'Table type', 'TABLE_TYPE']]
+graphed_table_info = graphed_table_info[['Table name', 'Table label', 'App module', 'Table group', 'Table type']]
+
+# Vérifier si les colonnes existent avant de fusionner
+if 'TABLE_NAME' in field_list.columns and 'TABLE_TYPE' in field_list.columns:
+    graphed_table_info = graphed_table_info.merge(field_list[['TABLE_NAME', 'TABLE_TYPE']], left_on='Table name', right_on='TABLE_NAME', how='left')
+else:
+    st.error('Les colonnes TABLE_NAME et/ou TABLE_TYPE sont manquantes dans le DataFrame field_list.')
+
 graphed_table_info['Total Associations'] = graphed_table_info['Table name'].map(total_counter)
 st.table(graphed_table_info)
 
