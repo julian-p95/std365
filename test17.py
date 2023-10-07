@@ -6,16 +6,16 @@ from pyvis.network import Network
 from collections import Counter
 import random
 
-# Génération de couleurs aléatoires
+# Génération d'une couleur aléatoire
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-# Upload des fichiers Excel
+# Téléchargement des fichiers Excel
 uploaded_file_erp = st.file_uploader("Upload erp_all_table_relations_finalV2.xlsx", type=['xlsx'])
 uploaded_file_d365fo = st.file_uploader("Upload D365FO.xlsx", type=['xlsx'])
 uploaded_file_field_list = st.file_uploader("Upload Table and Field List.xlsx", type=['xlsx'])
 
-# Vérification que tous les fichiers sont uploadés
+# Vérification que tous les fichiers sont bien téléchargés
 if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
     erp_relations_df = pd.read_excel(uploaded_file_erp)
     d365_table_df = pd.read_excel(uploaded_file_d365fo, sheet_name='D365 Table')
@@ -75,6 +75,16 @@ if uploaded_file_erp and uploaded_file_d365fo and uploaded_file_field_list:
         fields = field_list_df[field_list_df['TABLE_NAME'] == node]['COLUMN_NAME'].tolist()
         fields_str = ', '.join(fields)
         net.get_node(node)['title'] = f'Fields: {fields_str}'
-        
-    # Affichage du graphe
-    net.show("temp.html")
+
+    # Sauvegarde du graphe dans un fichier HTML
+    net.save_graph("temp.html")
+
+    # Lecture et affichage du fichier HTML dans Streamlit
+    with open("temp.html", 'r', encoding='utf-8') as f:
+        source_code = f.read()
+    st.components.v1.html(source_code, height=800)
+
+    # Afficher la légende des couleurs
+    st.write("Légende des couleurs:")
+    for app_module, color in color_map.items():
+        st.write(f"{app_module} : {color}")
