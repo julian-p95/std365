@@ -1,7 +1,9 @@
 # Importation des bibliothèques
 import pandas as pd
 import random
+from pyvis.network import Network
 from collections import Counter
+import streamlit as st
 # import de pyvis et streamlit à faire dans votre environnement
 
 # Génération d'une couleur aléatoire
