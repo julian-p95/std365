@@ -37,7 +37,7 @@ filtered_tables = d365_tables[d365_tables['App module'] == app_module]
 num_tables = st.slider('Nombre de tables à afficher:', min_value=1, max_value=len(filtered_tables), value=10)
 
 # Tables avec le plus grand nombre de relations
-top_tables = sorted(filtered_tables.nlargest(num_tables, 'Total Associations')['Table name'].tolist())
+top_tables = sorted(filtered_tables['Table name'].tolist())[:num_tables]
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
