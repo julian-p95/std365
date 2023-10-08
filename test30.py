@@ -11,8 +11,8 @@ def random_color():
 
 # Lecture des fichiers Excel
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
-d365_tables = pd.read_excel("data/D365FO.xlsx", sheet_name='D365 Table')
-field_list = pd.read_excel("data/Table and Field List.xlsx", sheet_name='Field List')
+d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
+field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
 
 # Conversion en majuscules
 erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.upper()
