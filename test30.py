@@ -28,16 +28,17 @@ total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['
 
 # Sélection du module d'application
 app_modules = sorted(d365_tables['App module'].dropna().unique().tolist())
-app_module = st.selectbox('Module d\'Application:', app_modules)
+app_module = st.selectbox('Module d\'Application:', app_modules, format_func=lambda x: x if x else 'None')
 
 # Filtrage des tables pour le module sélectionné
 filtered_tables = d365_tables[d365_tables['App module'] == app_module]
+filtered_tables['Total Associations'] = filtered_tables['Table name'].map(total_counter)
 
-# Nombre de tables à afficher
-num_tables = st.slider('Nombre de tables à afficher:', min_value=1, max_value=len(filtered_tables), value=10)
+# Slider pour le nombre de tables
+num_tables = st.slider('Nombre de tables:', min_value=1, max_value=len(filtered_tables), value=10)
 
 # Tables avec le plus grand nombre de relations
-top_tables = sorted(filtered_tables['Table name'].tolist())[:num_tables]
+top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table name'].tolist()
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
