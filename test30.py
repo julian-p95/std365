@@ -10,9 +10,9 @@ def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 # Lecture des fichiers Excel
-erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
-d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
-field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
+erp_relations = pd.read_excel("/mnt/data/erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+d365_tables = pd.read_excel("/mnt/data/D365FO.xlsx", sheet_name='D365 Table')
+field_list = pd.read_excel("/mnt/data/Table and Field List.xlsx", sheet_name='Field List')
 
 # Conversion en majuscules
 erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.upper()
@@ -63,14 +63,20 @@ for _, row in filtered_relations.iterrows():
     child = row['Table Enfant']
     relation_str = row['Lien 1']
     
+    table_info = d365_tables[d365_tables['Table name'] == parent].iloc[0]
+    title_str = "\n".join([f"{col}: {table_info[col]}" for col in ['Table name', 'Table label', 'Table group', 'Table type', 'App module', 'Form reference', 'SysTable', 'View', 'Global']])
+    
     if parent not in graphed_tables:
         color = app_module_colors.get(app_module, random_color())
-        net.add_node(parent, title="", color=color)
+        net.add_node(parent, title=title_str, color=color)
         graphed_tables.add(parent)
+    
+    table_info = d365_tables[d365_tables['Table name'] == child].iloc[0]
+    title_str = "\n".join([f"{col}: {table_info[col]}" for col in ['Table name', 'Table label', 'Table group', 'Table type', 'App module', 'Form reference', 'SysTable', 'View', 'Global']])
     
     if child not in graphed_tables:
         color = app_module_colors.get(app_module, random_color())
-        net.add_node(child, title="", color=color)
+        net.add_node(child, title=title_str, color=color)
         graphed_tables.add(child)
     
     net.add_edge(parent, child, title=relation_str)
