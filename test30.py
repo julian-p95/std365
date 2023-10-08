@@ -1,9 +1,9 @@
 # Importation des bibliothèques
 import pandas as pd
 import random
+from pyvis.network import Network
 from collections import Counter
 import streamlit as st
-from pyvis.network import Network
 
 # Génération d'une couleur aléatoire
 def random_color():
@@ -20,8 +20,12 @@ erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.up
 d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
 
+# Suppression des valeurs NaN dans 'App module' et tri
+d365_tables['App module'].fillna('Inconnu', inplace=True)
+app_modules = sorted(d365_tables['App module'].unique().tolist())
+
 # Dictionnaire de couleurs
-app_module_colors = {module: random_color() for module in d365_tables['App module'].unique()}
+app_module_colors = {module: random_color() for module in app_modules}
 
 # Comptage des occurrences
 total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['Table Enfant'])
@@ -34,34 +38,22 @@ df_total_counter.rename(columns={'index': 'Table'}, inplace=True)
 df_total_counter = df_total_counter.merge(d365_tables[['Table name', 'App module']], left_on='Table', right_on='Table name', how='left')
 
 # Sélection du module d'application
-app_modules = d365_tables['App module'].unique().tolist()
 app_module = st.selectbox('Module d\'Application:', app_modules)
 
-# Filtrage des tables
+# Filtrage des tables pour le module sélectionné
 filtered_tables = df_total_counter[df_total_counter['App module'] == app_module]
 
 # Slider pour le nombre de tables
 num_tables = st.slider('Nombre de tables:', min_value=1, max_value=len(filtered_tables), value=10)
 
 # Tables avec le plus grand nombre de relations
-top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table'].tolist()
-
-# Sélection de la table centrale
-central_table = st.selectbox('Table centrale:', top_tables)
-
-# Option pour se limiter aux tables du même module
-same_module_only = st.checkbox('Se limiter aux relations avec les tables du même module d\'application')
+top_tables = sorted(filtered_tables.nlargest(num_tables, 'Total Associations')['Table'].tolist())
 
 # Filtrage des relations
-if same_module_only:
-    filtered_relations = erp_relations[
-        ((erp_relations['Table Parent'] == central_table) | (erp_relations['Table Enfant'] == central_table)) &
-        (erp_relations['Table Parent'].isin(top_tables) | erp_relations['Table Enfant'].isin(top_tables))
-    ]
-else:
-    filtered_relations = erp_relations[
-        (erp_relations['Table Parent'] == central_table) | (erp_relations['Table Enfant'] == central_table)
-    ]
+filtered_relations = erp_relations[
+    erp_relations['Table Parent'].isin(top_tables) | 
+    erp_relations['Table Enfant'].isin(top_tables)
+]
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
@@ -71,17 +63,25 @@ graphed_tables = set()
 for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
-    relation_str = f"{parent} -> {child}"
+    relation_str = row['Lien 1']
     
     if parent not in graphed_tables:
-        title_str = "\n".join(filtered_relations[filtered_relations['Table Parent'] == parent]['Table Enfant'].astype(str))
-        color = app_module_colors.get(app_module, random_color()) if parent in top_tables else random_color()
+        # Compter les liens avec les tables des autres modules d'application
+        other_module_links = erp_relations[erp_relations['Table Parent'] == parent].merge(
+            d365_tables[['Table name', 'App module']], left_on='Table Enfant', right_on='Table name', how='left'
+        )['App module'].value_counts().to_dict()
+        title_str = '\n'.join([f"{k}: {v} liens" for k, v in other_module_links.items() if k != app_module])
+        color = app_module_colors.get(app_module, random_color())
         net.add_node(parent, title=title_str, color=color)
         graphed_tables.add(parent)
     
     if child not in graphed_tables:
-        title_str = "\n".join(filtered_relations[filtered_relations['Table Enfant'] == child]['Table Parent'].astype(str))
-        color = app_module_colors.get(app_module, random_color()) if child in top_tables else random_color()
+        # Compter les liens avec les tables des autres modules d'application
+        other_module_links = erp_relations[erp_relations['Table Enfant'] == child].merge(
+            d365_tables[['Table name', 'App module']], left_on='Table Parent', right_on='Table name', how='left'
+        )['App module'].value_counts().to_dict()
+        title_str = '\n'.join([f"{k}: {v} liens" for k, v in other_module_links.items() if k != app_module])
+        color = app_module_colors.get(app_module, random_color())
         net.add_node(child, title=title_str, color=color)
         graphed_tables.add(child)
     
@@ -94,6 +94,6 @@ with open("temp.html", 'r', encoding='utf-8') as f:
 st.components.v1.html(source_code, height=800)
 
 # Tableau pour afficher les champs
-table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', list(graphed_tables))
+table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', sorted(list(graphed_tables)))
 table_fields = field_list[field_list['TABLE_NAME'] == table_choice]
 st.table(table_fields[['COLUMN_NAME', 'DATA_TYPE']])
