@@ -55,7 +55,7 @@ for table in top_tables:
     other_module_count = other_module_relations['App module'].value_counts()
     total_relations = other_module_count.sum()
     if total_relations > 0:
-        title_str += f"\n\nRelation / Module : ({total_relations})\n"
+        title_str += f"\n\nRelation / Module : ({total_relations})"
     
     color = app_module_colors.get(app_module, random_color())
     net.add_node(table, title=title_str, color=color)
@@ -76,7 +76,7 @@ with open("temp.html", 'r', encoding='utf-8') as f:
 st.components.v1.html(source_code, height=800)
 
 # Barre de recherche pour les tables (placée sous le graphe)
-search_term_table = st.text_input("Rechercher une table")
+search_term_table = st.text_input("Rechercher une table (sous le graphe)")
 top_tables = sorted([x for x in top_tables if search_term_table.lower() in x.lower()])
 
 # Tableau pour la sélection de la table et l'affichage des champs
