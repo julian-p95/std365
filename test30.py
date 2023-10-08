@@ -1,10 +1,11 @@
 # Importation des bibliothèques
+# Import pyvis et streamlit dans votre propre environnement
+
 import pandas as pd
 import random
 from pyvis.network import Network
 from collections import Counter
 import streamlit as st
-# import de pyvis et streamlit à faire dans votre environnement
 
 # Génération d'une couleur aléatoire
 def random_color():
@@ -13,7 +14,7 @@ def random_color():
 # Lecture des fichiers Excel
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
-field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')  # Réintégration du chargement
+field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
 
 # Conversion en majuscules
 erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.upper()
@@ -47,19 +48,21 @@ num_tables = st.slider('Nombre de tables:', min_value=1, max_value=len(filtered_
 # Tables avec le plus grand nombre de relations
 top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table'].tolist()
 
-# Option pour inclure les tables d'autres modules
-include_other_modules = st.checkbox('Inclure les tables d\'autres modules connectées')
+# Sélection de la table centrale
+central_table = st.selectbox('Table centrale:', top_tables)
 
-# Filtrage des relations
-if include_other_modules:
+# Option pour se limiter aux relations avec les tables du même module d'application
+same_module_only = st.checkbox('Se limiter aux relations avec les tables du même module d\'application')
+
+# Filtrage des relations en fonction des options sélectionnées
+if same_module_only:
     filtered_relations = erp_relations[
-        (erp_relations['Table Parent'].isin(top_tables)) | 
-        (erp_relations['Table Enfant'].isin(top_tables))
+        ((erp_relations['Table Parent'] == central_table) | (erp_relations['Table Enfant'] == central_table)) &
+        (erp_relations['Table Parent'].isin(top_tables) | erp_relations['Table Enfant'].isin(top_tables))
     ]
 else:
     filtered_relations = erp_relations[
-        (erp_relations['Table Parent'].isin(top_tables)) & 
-        (erp_relations['Table Enfant'].isin(top_tables))
+        (erp_relations['Table Parent'] == central_table) | (erp_relations['Table Enfant'] == central_table)
     ]
 
 # Création du graphe
@@ -67,32 +70,24 @@ net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black
 
 # Ajout des nœuds avec informations sur les relations
 graphed_tables = set()
-for table in top_tables:
-    color = app_module_colors.get(app_module, random_color())
-    related_tables = filtered_relations[(filtered_relations['Table Parent'] == table) | (filtered_relations['Table Enfant'] == table)]
-    relationships = ["{} -> {}".format(row['Table Parent'], row['Table Enfant']) for _, row in related_tables.iterrows()]
-    title_str = "Table: {}\nApp Module: {}\nRelations:\n{}".format(table, app_module, "\n".join(relationships))
-    net.add_node(table, title=title_str, color=color)
-    graphed_tables.add(table)
-
-# Ajout des arêtes
 for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
-    relation = row['Lien 1']
+    relation_str = "{}.{} = {}.{}".format(parent, row['Champ Parent'], child, row['Champ Enfant'])
     
-    if include_other_modules:
-        # Ajoute des nœuds s'ils n'existent pas déjà
-        if parent not in graphed_tables:
-            net.add_node(parent, color=random_color())
-            graphed_tables.add(parent)
-        if child not in graphed_tables:
-            net.add_node(child, color=random_color())
-            graphed_tables.add(child)
-
-    # Vérifie que les nœuds existent avant d'ajouter une arête
-    if parent in graphed_tables and child in graphed_tables:
-        net.add_edge(parent, child, title=relation)
+    if parent not in graphed_tables:
+        title_str = "\n".join(filtered_relations[filtered_relations['Table Parent'] == parent]['Champ Enfant'].astype(str))
+        color = app_module_colors.get(app_module, random_color()) if parent in top_tables else random_color()
+        net.add_node(parent, title=title_str, color=color)
+        graphed_tables.add(parent)
+    
+    if child not in graphed_tables:
+        title_str = "\n".join(filtered_relations[filtered_relations['Table Enfant'] == child]['Champ Parent'].astype(str))
+        color = app_module_colors.get(app_module, random_color()) if child in top_tables else random_color()
+        net.add_node(child, title=title_str, color=color)
+        graphed_tables.add(child)
+    
+    net.add_edge(parent, child, title=relation_str)
 
 # Affichage du graphe
 net.save_graph("temp.html")
