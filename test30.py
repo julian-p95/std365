@@ -1,11 +1,9 @@
 # Importation des bibliothèques
-# Import pyvis et streamlit dans votre propre environnement
-
 import pandas as pd
 import random
-from pyvis.network import Network
 from collections import Counter
 import streamlit as st
+from pyvis.network import Network
 
 # Génération d'une couleur aléatoire
 def random_color():
@@ -22,7 +20,7 @@ erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.up
 d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
 
-# Dictionnaire de couleurs pour chaque module d'application
+# Dictionnaire de couleurs
 app_module_colors = {module: random_color() for module in d365_tables['App module'].unique()}
 
 # Comptage des occurrences
@@ -39,7 +37,7 @@ df_total_counter = df_total_counter.merge(d365_tables[['Table name', 'App module
 app_modules = d365_tables['App module'].unique().tolist()
 app_module = st.selectbox('Module d\'Application:', app_modules)
 
-# Filtrage des tables pour le module sélectionné
+# Filtrage des tables
 filtered_tables = df_total_counter[df_total_counter['App module'] == app_module]
 
 # Slider pour le nombre de tables
@@ -51,10 +49,10 @@ top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table']
 # Sélection de la table centrale
 central_table = st.selectbox('Table centrale:', top_tables)
 
-# Option pour se limiter aux relations avec les tables du même module d'application
+# Option pour se limiter aux tables du même module
 same_module_only = st.checkbox('Se limiter aux relations avec les tables du même module d\'application')
 
-# Filtrage des relations en fonction des options sélectionnées
+# Filtrage des relations
 if same_module_only:
     filtered_relations = erp_relations[
         ((erp_relations['Table Parent'] == central_table) | (erp_relations['Table Enfant'] == central_table)) &
@@ -68,21 +66,21 @@ else:
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
-# Ajout des nœuds avec informations sur les relations
+# Ajout des nœuds et des arêtes
 graphed_tables = set()
 for _, row in filtered_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
-    relation_str = "{}.{} = {}.{}".format(parent, row['Champ Parent'], child, row['Champ Enfant'])
+    relation_str = f"{parent} -> {child}"
     
     if parent not in graphed_tables:
-        title_str = "\n".join(filtered_relations[filtered_relations['Table Parent'] == parent]['Champ Enfant'].astype(str))
+        title_str = "\n".join(filtered_relations[filtered_relations['Table Parent'] == parent]['Table Enfant'].astype(str))
         color = app_module_colors.get(app_module, random_color()) if parent in top_tables else random_color()
         net.add_node(parent, title=title_str, color=color)
         graphed_tables.add(parent)
     
     if child not in graphed_tables:
-        title_str = "\n".join(filtered_relations[filtered_relations['Table Enfant'] == child]['Champ Parent'].astype(str))
+        title_str = "\n".join(filtered_relations[filtered_relations['Table Enfant'] == child]['Table Parent'].astype(str))
         color = app_module_colors.get(app_module, random_color()) if child in top_tables else random_color()
         net.add_node(child, title=title_str, color=color)
         graphed_tables.add(child)
@@ -95,7 +93,7 @@ with open("temp.html", 'r', encoding='utf-8') as f:
     source_code = f.read()
 st.components.v1.html(source_code, height=800)
 
-# Tableau pour la sélection de la table et l'affichage des champs
+# Tableau pour afficher les champs
 table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', list(graphed_tables))
 table_fields = field_list[field_list['TABLE_NAME'] == table_choice]
 st.table(table_fields[['COLUMN_NAME', 'DATA_TYPE']])
