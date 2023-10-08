@@ -1,4 +1,4 @@
-# Importation des bibliothèques
+# Importation des bibliothèques nécessaires
 import pandas as pd
 import random
 from pyvis.network import Network
@@ -20,6 +20,9 @@ erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.up
 d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
 
+# Gérer les valeurs NaN pour le module d'application
+d365_tables['App module'] = d365_tables['App module'].fillna("Non spécifié")
+
 # Dictionnaire de couleurs pour chaque module d'application
 app_module_colors = {module: random_color() for module in d365_tables['App module'].unique()}
 
@@ -28,7 +31,7 @@ total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['
 
 # Barre de recherche pour les modules d'application
 search_term_app_module = st.text_input("Rechercher un module d'application")
-app_modules = sorted([x for x in d365_tables['App module'].unique() if search_term_app_module.lower() in x.lower()])
+app_modules = sorted([x for x in d365_tables['App module'].unique() if x and search_term_app_module.lower() in x.lower()])
 app_module = st.selectbox('Module d\'Application:', app_modules)
 
 # Filtrage des tables pour le module sélectionné
@@ -52,15 +55,6 @@ net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black
 for table in top_tables:
     table_info = d365_tables[d365_tables['Table name'] == table].iloc[0]
     title_str = "\n".join([f"{col}: {table_info[col]}" for col in table_info.index if pd.notna(table_info[col])])
-    
-    # Compter les relations avec d'autres modules d'application
-    other_module_relations = erp_relations[(erp_relations['Table Parent'] == table) | (erp_relations['Table Enfant'] == table)]
-    other_module_relations = other_module_relations.merge(d365_tables[['Table name', 'App module']], left_on='Table Parent', right_on='Table name', how='left')
-    other_module_count = other_module_relations['App module'].value_counts()
-    total_relations = other_module_count.sum()
-    if not other_module_count.empty:
-        title_str += f"\n\nRelation / Module : ({total_relations})\n"
-    
     color = app_module_colors.get(app_module, random_color())
     net.add_node(table, title=title_str, color=color)
 
