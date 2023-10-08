@@ -24,16 +24,17 @@ d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
 
 # Dictionnaire de couleurs pour chaque module d'application
-app_module_colors = {module: random_color() for module in d365_tables['App module'].unique()}
+app_module_colors = {module: random_color() for module in d365_tables['App module'].unique() if module}
 
 # Comptage des occurrences
 total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['Table Enfant'])
 
 # Barre de recherche pour les modules d'application
 search_term_app_module = st.text_input("Rechercher un module d'application")
-app_modules = sorted([x for x in d365_tables['App module'].unique() if x and search_term_app_module.lower() in x.lower()])
+app_modules = sorted([x for x in d365_tables['App module'].unique() if x and (search_term_app_module.lower() in x.lower())])
 app_module = st.selectbox('Module d\'Application:', app_modules)
 
+# Le reste du code reste inchangé...
 # Filtrage des tables pour le module sélectionné
 filtered_tables = d365_tables[d365_tables['App module'] == app_module]
 filtered_tables['Total Associations'] = filtered_tables['Table name'].map(total_counter)
