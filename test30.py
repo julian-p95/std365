@@ -21,14 +21,15 @@ d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
 
 # Dictionnaire de couleurs pour chaque module d'application
-app_module_colors = {module: random_color() for module in d365_tables['App module'].dropna().unique()}
+app_module_colors = {module: random_color() for module in d365_tables['App module'].unique()}
 
-# Comptage des occurrences de tables
+# Comptage des occurrences
 total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['Table Enfant'])
 
-# Sélection du module d'application
-app_modules = sorted(d365_tables['App module'].dropna().unique().tolist())
-app_module = st.selectbox('Module d\'Application:', app_modules, format_func=lambda x: x if x else 'None')
+# Barre de recherche pour les modules d'application
+search_term_app_module = st.text_input("Rechercher un module d'application")
+app_modules = sorted([x for x in d365_tables['App module'].unique() if search_term_app_module.lower() in x.lower()])
+app_module = st.selectbox('Module d\'Application:', app_modules)
 
 # Filtrage des tables pour le module sélectionné
 filtered_tables = d365_tables[d365_tables['App module'] == app_module]
@@ -40,6 +41,10 @@ num_tables = st.slider('Nombre de tables:', min_value=1, max_value=len(filtered_
 # Tables avec le plus grand nombre de relations
 top_tables = filtered_tables.nlargest(num_tables, 'Total Associations')['Table name'].tolist()
 
+# Barre de recherche pour les tables
+search_term_table = st.text_input("Rechercher une table")
+top_tables = sorted([x for x in top_tables if search_term_table.lower() in x.lower()])
+
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
@@ -48,12 +53,13 @@ for table in top_tables:
     table_info = d365_tables[d365_tables['Table name'] == table].iloc[0]
     title_str = "\n".join([f"{col}: {table_info[col]}" for col in table_info.index if pd.notna(table_info[col])])
     
-    # Ajout du nombre de relations avec d'autres modules d'application
+    # Compter les relations avec d'autres modules d'application
     other_module_relations = erp_relations[(erp_relations['Table Parent'] == table) | (erp_relations['Table Enfant'] == table)]
     other_module_relations = other_module_relations.merge(d365_tables[['Table name', 'App module']], left_on='Table Parent', right_on='Table name', how='left')
     other_module_count = other_module_relations['App module'].value_counts()
+    total_relations = other_module_count.sum()
     if not other_module_count.empty:
-        title_str += "\n\nRelations avec d'autres modules:\n" + "\n".join([f"{k}: {v}" for k, v in other_module_count.items()])
+        title_str += f"\n\nRelation / Module : ({total_relations})\n"
     
     color = app_module_colors.get(app_module, random_color())
     net.add_node(table, title=title_str, color=color)
@@ -74,6 +80,6 @@ with open("temp.html", 'r', encoding='utf-8') as f:
 st.components.v1.html(source_code, height=800)
 
 # Tableau pour la sélection de la table et l'affichage des champs
-table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', sorted(top_tables))
+table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', top_tables)
 table_fields = field_list[field_list['TABLE_NAME'] == table_choice]
 st.table(table_fields[['COLUMN_NAME', 'DATA_TYPE']])
