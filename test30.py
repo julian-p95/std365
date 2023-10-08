@@ -5,7 +5,7 @@ from pyvis.network import Network
 from collections import Counter
 import streamlit as st
 
-# Fonction pour générer une couleur aléatoire
+# Génération d'une couleur aléatoire
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
@@ -28,22 +28,25 @@ total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['
 
 # Sélection du module d'application
 app_modules = sorted(d365_tables['App module'].dropna().unique().tolist())
-app_module = st.selectbox('Module d\'Application:', app_modules, format_func=lambda x: x if x else "N/A")
+app_module = st.selectbox('Module d\'Application:', app_modules)
 
 # Filtrage des tables pour le module sélectionné
 filtered_tables = d365_tables[d365_tables['App module'] == app_module]
 
-# Tables graphées, limitées aux tables de l'app module sélectionné
-top_tables = sorted(filtered_tables['Table name'].tolist())
+# Nombre de tables à afficher
+num_tables = st.slider('Nombre de tables à afficher:', min_value=1, max_value=len(filtered_tables), value=10)
+
+# Tables avec le plus grand nombre de relations
+top_tables = sorted(filtered_tables.nlargest(num_tables, 'Total Associations')['Table name'].tolist())
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
-# Ajout des nœuds avec informations D365FO
+# Ajout des nœuds avec leurs attributs
 for table in top_tables:
-    color = app_module_colors.get(app_module, random_color())
     table_info = d365_tables[d365_tables['Table name'] == table].iloc[0]
     title_str = "\n".join([f"{col}: {table_info[col]}" for col in table_info.index if pd.notna(table_info[col])])
+    color = app_module_colors.get(app_module, random_color())
     net.add_node(table, title=title_str, color=color)
 
 # Ajout des arêtes avec leurs attributs
