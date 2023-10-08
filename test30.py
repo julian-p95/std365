@@ -14,6 +14,9 @@ erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
 
+# Gérer les valeurs NaN pour le module d'application
+d365_tables['App module'] = d365_tables['App module'].fillna("Non spécifié")
+
 # Conversion en majuscules
 erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.upper()
 erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.upper()
@@ -28,7 +31,7 @@ total_counter = Counter(erp_relations['Table Parent']) + Counter(erp_relations['
 
 # Barre de recherche pour les modules d'application
 search_term_app_module = st.text_input("Rechercher un module d'application")
-app_modules = sorted([x for x in d365_tables['App module'].unique() if search_term_app_module.lower() in x.lower()])
+app_modules = sorted([x for x in d365_tables['App module'].unique() if x and search_term_app_module.lower() in x.lower()])
 app_module = st.selectbox('Module d\'Application:', app_modules)
 
 # Filtrage des tables pour le module sélectionné
