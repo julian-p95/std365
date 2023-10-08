@@ -37,8 +37,9 @@ df_total_counter.rename(columns={'index': 'Table'}, inplace=True)
 # Jointure pour récupérer les modules d'application
 df_total_counter = df_total_counter.merge(d365_tables[['Table name', 'App module']], left_on='Table', right_on='Table name', how='left')
 
-# Sélection du module d'application
-app_module = st.selectbox('Module d\'Application:', app_modules)
+# Module de recherche et sélection du module d'application
+search_term_module = st.text_input('Rechercher un module:')
+app_module = st.selectbox('Module d\'Application:', [module for module in app_modules if search_term_module.lower() in module.lower()])
 
 # Filtrage des tables pour le module sélectionné
 filtered_tables = df_total_counter[df_total_counter['App module'] == app_module]
@@ -49,11 +50,8 @@ num_tables = st.slider('Nombre de tables:', min_value=1, max_value=len(filtered_
 # Tables avec le plus grand nombre de relations
 top_tables = sorted(filtered_tables.nlargest(num_tables, 'Total Associations')['Table'].tolist())
 
-# Filtrage des relations
-filtered_relations = erp_relations[
-    erp_relations['Table Parent'].isin(top_tables) | 
-    erp_relations['Table Enfant'].isin(top_tables)
-]
+# Filtrage des relations pour inclure seulement ces tables
+filtered_relations = erp_relations[erp_relations['Table Parent'].isin(top_tables) & erp_relations['Table Enfant'].isin(top_tables)]
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
@@ -66,23 +64,13 @@ for _, row in filtered_relations.iterrows():
     relation_str = row['Lien 1']
     
     if parent not in graphed_tables:
-        # Compter les liens avec les tables des autres modules d'application
-        other_module_links = erp_relations[erp_relations['Table Parent'] == parent].merge(
-            d365_tables[['Table name', 'App module']], left_on='Table Enfant', right_on='Table name', how='left'
-        )['App module'].value_counts().to_dict()
-        title_str = '\n'.join([f"{k}: {v} liens" for k, v in other_module_links.items() if k != app_module])
         color = app_module_colors.get(app_module, random_color())
-        net.add_node(parent, title=title_str, color=color)
+        net.add_node(parent, title="", color=color)
         graphed_tables.add(parent)
     
     if child not in graphed_tables:
-        # Compter les liens avec les tables des autres modules d'application
-        other_module_links = erp_relations[erp_relations['Table Enfant'] == child].merge(
-            d365_tables[['Table name', 'App module']], left_on='Table Parent', right_on='Table name', how='left'
-        )['App module'].value_counts().to_dict()
-        title_str = '\n'.join([f"{k}: {v} liens" for k, v in other_module_links.items() if k != app_module])
         color = app_module_colors.get(app_module, random_color())
-        net.add_node(child, title=title_str, color=color)
+        net.add_node(child, title="", color=color)
         graphed_tables.add(child)
     
     net.add_edge(parent, child, title=relation_str)
@@ -93,7 +81,8 @@ with open("temp.html", 'r', encoding='utf-8') as f:
     source_code = f.read()
 st.components.v1.html(source_code, height=800)
 
-# Tableau pour afficher les champs
-table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', sorted(list(graphed_tables)))
+# Module de recherche et tableau pour afficher les champs
+search_term_table = st.text_input('Rechercher une table:')
+table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', [table for table in sorted(list(graphed_tables)) if search_term_table.lower() in table.lower()])
 table_fields = field_list[field_list['TABLE_NAME'] == table_choice]
 st.table(table_fields[['COLUMN_NAME', 'DATA_TYPE']])
