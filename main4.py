@@ -8,13 +8,18 @@ d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 # Sélection de l'App module
 selected_app_module = st.selectbox('Sélectionnez un App module:', d365_tables['App module'].unique().tolist())
 
-# Tableau des relations par App module
+# Filtre les relations par App module
 filtered_relations = erp_relations[(erp_relations['App Module Parent'] == selected_app_module)]
-relation_summary = filtered_relations.groupby('App Module Enfant').size().reset_index(name='Total Relations')
+
+# Compte le nombre total de relations par App module Enfant
+relation_summary = filtered_relations.groupby(['App Module Parent', 'App Module Enfant']).size().reset_index(name='Total Relations')
 relation_summary = relation_summary.sort_values(by='Total Relations', ascending=False)
 st.table(relation_summary)
 
-# Tableau des tables par App module
+# Filtre les tables par App module
 filtered_tables = d365_tables[d365_tables['App module'] == selected_app_module]
-sorted_tables = filtered_tables.sort_values(by='Total Relations', ascending=False).head(20)  # Affiche les 20 premières tables triées par 'Total Relations'
-st.table(sorted_tables[['Table name', 'Table label', 'Table group', 'Tabletype']])
+
+# Affiche les tables triées par le nombre total de relations
+table_choice = st.selectbox('Choisissez une table pour afficher ses détails:', filtered_tables['Table name'].tolist())
+table_details = filtered_tables[filtered_tables['Table name'] == table_choice]
+st.table(table_details[['Table name', 'Table label', 'Table group', 'Table\xa0type']])
