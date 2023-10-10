@@ -6,30 +6,23 @@ import streamlit as st
 st.title("Analyse des Tables ERP")
 
 # Lecture des fichiers Excel
-d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
-erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+d365_tables = pd.read_excel("/path/to/D365FO.xlsx", sheet_name='D365 Table')
 
 # Gestion des valeurs NaN
-d365_tables.fillna("Non spécifié", inplace=True)
+d365_tables.dropna(subset=['App module'], inplace=True)
 
-# Filtre pour éliminer le module "General"
-filtered_d365 = d365_tables[d365_tables['App module'] != 'General']
+# Création d'une nouvelle colonne pour App module - Table group - Table type
+d365_tables['AppModule-TableGroup-TableType'] = d365_tables['App module'] + " - " + d365_tables['Table group'].astype(str) + " - " + d365_tables['Table type'].astype(str)
 
-# Graphique à barres horizontales pour App module
+# Filtrage pour enlever 'Non spécifié'
+d365_tables = d365_tables[d365_tables['App module'] != 'Non spécifié']
+
+# Graphique à barres horizontales pour AppModule-TableGroup-TableType
+grouped_counts = d365_tables['AppModule-TableGroup-TableType'].value_counts()
 fig, ax = plt.subplots()
-filtered_d365['App module'].value_counts().plot(kind='barh', ax=ax)
-plt.title('Répartition des App modules')
+grouped_counts.plot(kind='barh', ax=ax)
+plt.title('Répartition des App module - Table group - Table type')
 plt.xlabel('Nombre de tables')
-plt.ylabel('App module')
-st.pyplot(fig)
-
-# Camembert pour App module
-app_module_counts = d365_tables['App module'].value_counts().reset_index()
-app_module_counts.columns = ['App module', 'Count']
-app_module_counts['Category'] = app_module_counts['App module'].apply(lambda x: x if x in ['General', 'Non spécifié', 'SystemAdministration'] else 'Other')
-category_counts = app_module_counts.groupby('Category')['Count'].sum()
-
-fig, ax = plt.subplots()
-category_counts.plot(kind='pie', ax=ax, autopct='%1.1f%%')
-plt.title('Répartition des App modules')
+plt.ylabel('App module - Table group - Table type')
+plt.subplots_adjust(left=0.25)
 st.pyplot(fig)
