@@ -29,11 +29,7 @@ app_module_counts['Ratio'] = app_module_counts['Nombre de tables'] / total_table
 # Affichage du tableau
 st.table(app_module_counts)
 
-# Comptage des préfixes des tables
-d365_tables['Prefix'] = d365_tables['Table label'].str.split(' ').str[0].str.upper()
-prefix_counts = d365_tables['Prefix'].value_counts().reset_index()
-prefix_counts.columns = ['Prefix', 'Occurrence']
-st.table(prefix_counts)
+
 
 # Graphique à barres horizontales pour Table Groups
 fig, ax = plt.subplots(figsize=(10, 12))
