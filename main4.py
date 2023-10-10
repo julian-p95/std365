@@ -19,7 +19,11 @@ st.table(relation_summary)
 # Filtre les tables par App module
 filtered_tables = d365_tables[d365_tables['App module'] == selected_app_module]
 
-# Affiche les tables triées par le nombre total de relations
-table_choice = st.selectbox('Choisissez une table pour afficher ses détails:', filtered_tables['Table name'].tolist())
-table_details = filtered_tables[filtered_tables['Table name'] == table_choice]
-st.table(table_details[['Table name', 'Table label', 'Table group', 'Tabletype']])
+# Compte le nombre de relations pour chaque table
+total_relations_count = filtered_relations['Table Name Parent'].value_counts().reset_index()
+total_relations_count.columns = ['Table name', 'Total Relations']
+filtered_tables = pd.merge(filtered_tables, total_relations_count, on='Table name', how='left')
+
+# Trie les tables par le nombre total de relations et affiche les 20 premières
+sorted_tables = filtered_tables.sort_values(by='Total Relations', ascending=False).head(20)
+st.table(sorted_tables[['Table name', 'Table label', 'Table group', 'Tabletype', 'Total Relations']])
