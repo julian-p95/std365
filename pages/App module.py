@@ -5,6 +5,10 @@ import streamlit as st
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
+# Titre pour la page
+st.title("App module")
+
+
 # Sélection de l'App module
 selected_app_module = st.selectbox('Sélectionnez un App module:', d365_tables['App module'].unique().tolist())
 

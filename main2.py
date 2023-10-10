@@ -6,7 +6,7 @@ import streamlit as st
 from collections import Counter
 
 # Titre pour la page d'accueil
-st.title("Accueil")
+st.title("D365 FO V2")
 
 # Lecture des fichiers Excel
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
