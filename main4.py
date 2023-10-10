@@ -2,8 +2,8 @@ import pandas as pd
 import streamlit as st
 
 # Lecture des fichiers Excel
-erp_relations = pd.read_excel("/path/to/erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
-d365_tables = pd.read_excel("/path/to/D365FO.xlsx", sheet_name='D365 Table')
+erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
 # Compte le nombre total de relations par table
 table_relation_counts = erp_relations['Table Parent'].value_counts().reset_index()
