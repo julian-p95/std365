@@ -11,7 +11,7 @@ d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 # Gestion des valeurs NaN
 d365_tables['App module'].fillna("Non spécifié", inplace=True)
 d365_tables['Table group'].fillna("Non spécifié", inplace=True)
-d365_tables['Tabletype'].fillna("Non spécifié", inplace=True)
+d365_tables['Table\xa0type'].fillna("Non spécifié", inplace=True)
 
 # Filtrage des App modules
 filtered_tables = d365_tables[~d365_tables['App module'].isin(['SystemAdministration', 'General', 'Non spécifié'])]
@@ -19,22 +19,23 @@ filtered_tables = d365_tables[~d365_tables['App module'].isin(['SystemAdministra
 # Répartition par App module
 app_module_counts = filtered_tables['App module'].value_counts()
 
-# 5 types de graphiques
-fig_types = ['bar', 'barh', 'pie', 'area', 'line']
-for ftype in fig_types:
-    fig, ax = plt.subplots()
-    app_module_counts.plot(kind=ftype, ax=ax)
-    plt.title(f'Répartition des App modules - {ftype}')
-    plt.xlabel('App module')
-    plt.ylabel('Nombre de tables')
-    st.pyplot(fig)
+# Graphique horizontal des App modules
+fig1, ax1 = plt.subplots()
+app_module_counts.plot(kind='barh', ax=ax1, linewidth=2)
+plt.title('Répartition des App modules')
+plt.xlabel('Nombre de tables')
+plt.ylabel('App module')
+ax1.bar_label(ax1.containers[0])
+st.pyplot(fig1)
 
-# Graphique pour tous les App modules
-all_app_module_counts = d365_tables['App module'].value_counts()
-for ftype in fig_types:
-    fig, ax = plt.subplots()
-    all_app_module_counts.plot(kind=ftype, ax=ax, autopct='%1.1f%%' if ftype == 'pie' else None)
-    plt.title(f'Poids de chaque App module - {ftype}')
-    plt.xlabel('App module')
-    plt.ylabel('Nombre de tables')
-    st.pyplot(fig)
+# Répartition par Table group
+table_group_counts = d365_tables['Table group'].value_counts()
+
+# Graphique horizontal des Table groups
+fig2, ax2 = plt.subplots()
+table_group_counts.plot(kind='barh', ax=ax2, linewidth=2)
+plt.title('Répartition des groupes de tables')
+plt.xlabel('Nombre de tables')
+plt.ylabel('Table group')
+ax2.bar_label(ax2.containers[0])
+st.pyplot(fig2)
