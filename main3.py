@@ -1,4 +1,3 @@
-# Importations
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -12,20 +11,25 @@ d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
 # Gestion des valeurs NaN
 d365_tables['App module'].fillna("Non spécifié", inplace=True)
+d365_tables['Table group'].fillna("Non spécifié", inplace=True)
+d365_tables['Table type'].fillna("Non spécifié", inplace=True)
 
 # Calcul du nombre total de tables
 total_tables = len(d365_tables)
 
-# Création d'une nouvelle colonne combinant App module, Table group et Table type
+# Création d'une nouvelle colonne pour la combinaison "AppModule - TableGroup - TableType"
 d365_tables['AppModule-TableGroup-TableType'] = d365_tables['App module'] + " - " + d365_tables['Table group'] + " - " + d365_tables['Table type']
 
-# Compte du nombre de tables pour chaque combinaison unique
-table_combination_counts = d365_tables['AppModule-TableGroup-TableType'].value_counts()
+# Sélection de l'App module
+selected_app_module = st.selectbox('Sélectionnez un App module:', ['ALL'] + d365_tables['App module'].unique().tolist())
+if selected_app_module != 'ALL':
+    d365_tables = d365_tables[d365_tables['App module'] == selected_app_module]
 
-# Graphique à barres horizontales
+# Graphique à barres horizontales pour la combinaison "AppModule - TableGroup - TableType"
+combination_counts = d365_tables['AppModule-TableGroup-TableType'].value_counts()
 fig, ax = plt.subplots()
-table_combination_counts.plot(kind='barh', ax=ax)
-plt.title('Répartition des tables par App module, Table group et Table type')
+combination_counts.plot(kind='barh', ax=ax)
+plt.title('Répartition des tables par AppModule - TableGroup - TableType')
 plt.xlabel('Nombre de tables')
-plt.ylabel('App module - Table group - Table type')
+plt.ylabel('AppModule - TableGroup - TableType')
 st.pyplot(fig)
