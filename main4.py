@@ -22,4 +22,4 @@ filtered_tables = d365_tables[d365_tables['App module'] == selected_app_module]
 # Affiche les tables triées par le nombre total de relations
 table_choice = st.selectbox('Choisissez une table pour afficher ses détails:', filtered_tables['Table name'].tolist())
 table_details = filtered_tables[filtered_tables['Table name'] == table_choice]
-st.table(table_details[['Table name', 'Table label', 'Table group', 'Table\xa0type']])
+st.table(table_details[['Table name', 'Table label', 'Table group', 'Tabletype']])
