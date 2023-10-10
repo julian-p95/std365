@@ -16,8 +16,9 @@ d365_tables['Tabletype'].fillna("Non spécifié", inplace=True)  # Correction ic
 # Graphique à barres horizontales pour App modules
 app_module_counts = d365_tables['App module'].value_counts()
 app_module_counts = app_module_counts.drop(['Non spécifié', 'SystemAdministration', 'General'])
-fig1, ax1 = plt.subplots()
-app_module_counts.plot(kind='barh', ax=ax1)
+fig1, ax1 = plt.subplots(figsize=(10, 12))  # Ajustement de la taille du graphique
+app_module_counts.plot(kind='barh', ax=ax1, height=0.8)  # Ajustement de l'épaisseur des barres
+
 ax1.set_title('Répartition des App modules')
 ax1.set_xlabel('Nombre de tables')
 ax1.set_ylabel('App modules')
