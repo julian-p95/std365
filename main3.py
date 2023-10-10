@@ -11,6 +11,7 @@ d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 # Gestion des valeurs NaN
 d365_tables['App module'].fillna("Non spécifié", inplace=True)
 d365_tables['Table group'].fillna("Non spécifié", inplace=True)
+d365_tables['Tabletype'].fillna("Non spécifié", inplace=True)  # Correction ici
 
 # Graphique à barres horizontales pour App modules
 app_module_counts = d365_tables['App module'].value_counts()
