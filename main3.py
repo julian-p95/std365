@@ -11,10 +11,7 @@ d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 # Gestion des valeurs NaN
 d365_tables['App module'].fillna("Non spécifié", inplace=True)
 d365_tables['Table group'].fillna("Non spécifié", inplace=True)
-d365_tables['Tabletype'].fillna("Non spécifié", inplace=True)
-
-# Filtre pour exclure certains App modules
-d365_tables = d365_tables[~d365_tables['App module'].isin(["Non spécifié", "SystemAdministration", "General"])]
+d365_tables['Table type'].fillna("Non spécifié", inplace=True)
 
 # Graphique à barres horizontales
 grouped_counts = d365_tables['App module'].value_counts()
@@ -23,7 +20,7 @@ grouped_counts.plot(kind='barh', ax=ax)
 ax.set_title('Répartition des App modules')
 ax.set_xlabel('Nombre de tables')
 ax.set_ylabel('App modules')
-ax.set_yticks(ax.get_yticks()[::2])  # Augmentation de l'espace entre les barres
+ax.set_yticks(ax.get_yticks())  # Augmentation de l'espace entre les barres
 st.pyplot(fig)
 
 # Tableau des préfixes des labels de table
