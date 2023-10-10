@@ -6,8 +6,8 @@ import streamlit as st
 st.title("Analyse des Tables ERP")
 
 # Lecture des fichiers Excel
-d365_tables = pd.read_excel("/path/to/D365FO.xlsx", sheet_name='D365 Table')
-erp_relations = pd.read_excel("/path/to/erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
+erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
 
 # Gestion des valeurs NaN
 d365_tables['App module'].fillna("Non spécifié", inplace=True)
