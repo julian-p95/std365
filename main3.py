@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from collections import Counter
 
-# Titre pour la page d'accueil
+# Titre de la page d'accueil
 st.title("Accueil")
 
 # Lecture des fichiers Excel
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
-# Gérer les valeurs NaN pour le module d'application
+# Gestion des valeurs NaN pour le module d'application
 d365_tables['App module'] = d365_tables['App module'].fillna("Non spécifié")
 
 # Conversion en majuscules
@@ -23,40 +23,39 @@ d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 # Calcul du nombre total de tables
 total_tables = len(d365_tables)
 
-# Calcul du nombre de tables par module d'application
-app_module_counts = d365_tables['App module'].value_counts().sort_values(ascending=False)
+# Calcul du nombre de tables par "Table Group"
+table_group_counts = d365_tables['TableGroup'].value_counts()
+table_group_ratios = (table_group_counts / total_tables) * 100
 
-# Calcul du ratio en pourcentage pour chaque module d'application
-app_module_ratios = (app_module_counts / total_tables) * 100
-
-# Visualisation de la répartition des modules d'application en barres
+# Visualisation de la répartition des "Table Group"
 fig1, ax1 = plt.subplots()
-app_module_ratios.plot(kind='bar', ax=ax1)
-plt.title('Répartition des App Modules (Barres)')
-plt.xlabel('App Module')
+table_group_ratios.plot(kind='bar', ax=ax1)
+plt.title('Répartition des Table Group (Barres)')
+plt.xlabel('Table Group')
 plt.ylabel('% du total des tables')
 st.pyplot(fig1)
 
-# Visualisation de la répartition des modules d'application en camembert
+# Camembert filtré par "App module"
+selected_app_module = st.selectbox('Sélectionnez un App module pour le camembert:', d365_tables['App module'].unique())
+filtered_d365 = d365_tables[d365_tables['App module'] == selected_app_module]
+filtered_table_group_counts = filtered_d365['TableGroup'].value_counts()
+filtered_table_group_ratios = (filtered_table_group_counts / len(filtered_d365)) * 100
+
 fig2, ax2 = plt.subplots()
-app_module_ratios.plot(kind='pie', ax=ax2, autopct='%1.1f%%')
-plt.title('Répartition des App Modules (Camembert)')
+filtered_table_group_ratios.plot(kind='pie', ax=ax2, autopct='%1.1f%%')
+plt.title(f'Répartition des Table Group pour {selected_app_module} (Camembert)')
 st.pyplot(fig2)
 
-# Affichage du tableau avec le nombre de tables par module d'application
-st.table(app_module_counts.reset_index().rename(columns={"index": "App Module", "App module": "Nombre de Tables"}))
-
-# Sommaire
-st.subheader("Sommaire")
-for app_module in app_module_counts.index:
-    st.markdown(f"* [{app_module}](#{app_module})")
+# Tableau récapitulatif des App modules
+table_types = d365_tables.groupby(['App module', 'TableType']).size().unstack().fillna(0)
+table_types['Total'] = table_types.sum(axis=1)
+table_types_percentage = (table_types.div(table_types['Total'], axis=0) * 100).drop(columns=['Total'])
+st.table(table_types_percentage.reset_index())
 
 # Détails pour chaque module d'application
+app_module_counts = d365_tables['App module'].value_counts().sort_values(ascending=False)
 for app_module in app_module_counts.index:
     st.subheader(f"App Module: {app_module}")
-
-    # Anchor pour le sommaire
-    st.markdown(f"<a name='{app_module}'></a>", unsafe_allow_html=True)
 
     # Tables du module d'application
     filtered_tables = d365_tables[d365_tables['App module'] == app_module]
@@ -64,10 +63,4 @@ for app_module in app_module_counts.index:
 
     # 10 tables avec le plus grand nombre de relations
     top_tables = filtered_tables.nlargest(10, 'Total Associations')
-    st.write(top_tables[['Table name', 'Total Associations']])
-
-    # Relations avec d'autres modules d'application
-    other_module_relations = erp_relations[(erp_relations['Table Parent'].isin(filtered_tables['Table name'])) | (erp_relations['Table Enfant'].isin(filtered_tables['Table name']))]
-    other_module_relations = other_module_relations.merge(d365_tables[['Table name', 'App module']], left_on='Table Parent', right_on='Table name', how='left')
-    other_module_count = other_module_relations['App module'].value_counts()
-    st.write("Relations avec d'autres App Modules:", other_module_count)
+    st.table(top_tables[['Table name', 'Total Associations', 'TableGroup', 'TableType', 'TableLabel']])
