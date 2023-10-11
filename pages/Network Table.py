@@ -47,16 +47,21 @@ for table in connected_tables:
         color = app_module_colors.get(table_info['App module'], random_color())
         net.add_node(table, title=title_str, color=color)
 
+# ... (le code précédent reste inchangé)
+
 # Ajouter des arêtes
 existing_nodes = set(net.get_nodes())
 for _, row in erp_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
     relation = row['Lien 1']
+    
     if parent in existing_nodes and child in existing_nodes:
         net.add_edge(parent, child, title=relation)
     else:
         st.write(f"Erreur: Parent {parent} ou enfant {child} non trouvé dans le graphe.")
+
+# ... (le reste du code reste inchangé)
 
 # Afficher le graphe
 net.save_graph("temp.html")
