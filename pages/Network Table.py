@@ -50,14 +50,17 @@ for table in connected_tables:
 
 # Ajout des arêtes
 existing_nodes = set(net.get_nodes())
-for _, row in erp_relations.iterrows():
-    parent = row['Table Parent']
-    child = row['Table Enfant']
-    relation = row['Lien 1']
-    if parent in existing_nodes and child in existing_nodes:
-        net.add_edge(parent, child, title=relation)
-    else:
-        st.write(f"Skipped edge from {parent} to {child} as one or both nodes are missing.")
+try:
+    for _, row in erp_relations.iterrows():
+        parent = row['Table Parent']
+        child = row['Table Enfant']
+        relation = row['Lien 1']
+        if parent in existing_nodes and child in existing_nodes:
+            net.add_edge(parent, child, title=relation)
+        else:
+            st.write(f"Skipped edge from {parent} to {child} as one or both nodes are missing.")
+except AssertionError as e:
+    st.write(f"Assertion Error: {e}")
 
 # Affichage du graphe
 net.save_graph("temp.html")
