@@ -43,13 +43,12 @@ selected_app_modules = st.multiselect('Sélectionnez les modules d’application
 # Créer la légende pour les modules d'application
 legend_data = {module: app_module_colors[module] for module in selected_app_modules}
 st.write("### Légende")
-legend_html = "<div style='display: flex; flex-direction: row;'>"
+legend_html = "<div style='display: flex; flex-direction: row; flex-wrap: wrap;'>"
 for module, color in legend_data.items():
     legend_html += f"<div style='margin: 5px;'><span style='background-color: {color}; width: 20px; height: 20px; display: inline-block; margin-right: 5px;'></span>{module}</div>"
-    if module == 'SalesAndMarketing':
-        legend_html += "<br>"
 legend_html += "</div>"
 st.markdown(legend_html, unsafe_allow_html=True)
+
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
