@@ -46,10 +46,10 @@ st.write("### Légende")
 legend_html = "<div style='display: flex; flex-direction: row;'>"
 for module, color in legend_data.items():
     legend_html += f"<div style='margin: 5px;'><span style='background-color: {color}; width: 20px; height: 20px; display: inline-block; margin-right: 5px;'></span>{module}</div>"
+    if module == 'SalesAndMarketing':
+        legend_html += "<br>"
 legend_html += "</div>"
 st.markdown(legend_html, unsafe_allow_html=True)
-
-# Le reste du code pour la création du graphe et l'affichage du tableau résumé reste le même
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
@@ -67,11 +67,6 @@ for table in connected_tables:
         color = app_module_colors.get(app_module, random_color())
         net.add_node(table, title=title_str, color=color)
         app_module_counter[app_module] = app_module_counter.get(app_module, 0) + 1
-
-# Afficher le tableau résumé
-st.write("### Tableau résumé")
-summary_df = pd.DataFrame(list(app_module_counter.items()), columns=["Module d'application", "Nombre de relations"])
-st.write(summary_df)
 
 # Ajout des arêtes
 existing_nodes = set(net.get_nodes())
@@ -91,3 +86,8 @@ with open("temp.html", 'r', encoding='utf-8') as f:
     source_code = f.read()
 st.components.v1.html(source_code, height=800)
 
+# Afficher le tableau résumé trié par ordre décroissant de nombre de relations
+st.write("### Tableau résumé")
+summary_df = pd.DataFrame(list(app_module_counter.items()), columns=["Module d'application", "Nombre de relations"])
+summary_df = summary_df.sort_values(by="Nombre de relations", ascending=False)
+st.write(summary_df)
