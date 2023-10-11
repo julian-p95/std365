@@ -1,16 +1,19 @@
 # Importer les bibliothèques nécessaires
 import random
+import pandas as pd
 from pyvis.network import Network
 from collections import Counter
 import streamlit as st
 
+# Titre pour la première page
+st.title("Graphe ")
 # Fonction pour générer une couleur aléatoire
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-# Lire les fichiers Excel
-erp_relations = pd.read_excel(erp_relations_path, sheet_name='Sheet1')
-d365_tables = pd.read_excel(d365_tables_path, sheet_name='D365 Table')
+# Lecture des fichiers Excel
+erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
 # Gérer les valeurs NaN
 d365_tables['App module'] = d365_tables['App module'].fillna("Non spécifié")
