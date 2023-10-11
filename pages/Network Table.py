@@ -57,6 +57,15 @@ for table in connected_tables:
         net.add_node(table, title=title_str, color=color)
         app_module_counter[app_module] = app_module_counter.get(app_module, 0) + 1
 
+# Ajout des arêtes
+existing_nodes = set(net.get_nodes())
+for _, row in erp_relations.iterrows():
+    parent = row['Table Parent']
+    child = row['Table Enfant']
+    relation = row['Lien 1']
+    if parent in existing_nodes and child in existing_nodes:
+        net.add_edge(parent, child, title=relation)
+
 # Affichage du graphe
 net.save_graph("temp.html")
 with open("temp.html", 'r', encoding='utf-8') as f:
