@@ -26,9 +26,8 @@ d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 # Dictionnaire de couleurs
 app_module_colors = {module: random_color() for module in d365_tables['App module'].unique() if module}
 
-# Barre de recherche pour les tables
-search_term_table = st.text_input("Rechercher une table")
-all_tables = sorted([x for x in d365_tables['Table name'].unique() if x and (search_term_table.lower() in x.lower())])
+# Sélection de la table centrale
+all_tables = sorted(d365_tables['Table name'].unique())
 central_table = st.selectbox('Table centrale:', all_tables)
 
 # Trouver les tables connectées
@@ -39,12 +38,6 @@ connected_tables.add(central_table)
 # Trouver les modules d'application connectés et créer un widget multiselect
 connected_app_modules = d365_tables[d365_tables['Table name'].isin(connected_tables)]['App module'].unique().tolist()
 selected_app_modules = st.multiselect('Sélectionnez les modules d’application à afficher:', connected_app_modules, default=connected_app_modules)
-
-# Créer la légende pour les modules d'application
-st.write("### Légende")
-legend_data = {module: app_module_colors[module] for module in selected_app_modules}
-legend_df = pd.DataFrame(list(legend_data.items()), columns=["Module d'application", "Couleur"])
-st.write(legend_df)
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
@@ -63,25 +56,13 @@ for table in connected_tables:
         net.add_node(table, title=title_str, color=color)
         app_module_counter[app_module] = app_module_counter.get(app_module, 0) + 1
 
-# Afficher le tableau résumé
-st.write("### Tableau résumé")
-summary_df = pd.DataFrame(list(app_module_counter.items()), columns=["Module d'application", "Nombre de relations"])
-st.write(summary_df)
-
-# Ajout des arêtes
-existing_nodes = set(net.get_nodes())
-for _, row in erp_relations.iterrows():
-    try:
-        parent = row['Table Parent']
-        child = row['Table Enfant']
-        relation = row['Lien 1']
-        if parent in existing_nodes and child in existing_nodes:
-            net.add_edge(parent, child, title=relation)
-    except Exception as e:
-        st.write(f"Erreur lors de l'ajout de l'arête de {parent} à {child}: {e}")
-
 # Affichage du graphe
 net.save_graph("temp.html")
 with open("temp.html", 'r', encoding='utf-8') as f:
     source_code = f.read()
 st.components.v1.html(source_code, height=800)
+
+# Afficher le tableau résumé sous le graphe
+st.write("### Tableau résumé")
+summary_df = pd.DataFrame(list(app_module_counter.items()), columns=["Module d'application", "Nombre de relations"])
+st.write(summary_df)
