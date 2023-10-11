@@ -48,19 +48,22 @@ for table in connected_tables:
         color = app_module_colors.get(table_info['App module'], random_color())
         net.add_node(table, title=title_str, color=color)
 
+# ... (le reste du code est inchangé jusqu'à l'ajout des arêtes)
+
 # Ajout des arêtes
 existing_nodes = set(net.get_nodes())
-try:
-    for _, row in erp_relations.iterrows():
+for _, row in erp_relations.iterrows():
+    try:
         parent = row['Table Parent']
         child = row['Table Enfant']
         relation = row['Lien 1']
         if parent in existing_nodes and child in existing_nodes:
             net.add_edge(parent, child, title=relation)
-        else:
-            st.write(f"Skipped edge from {parent} to {child} as one or both nodes are missing.")
-except AssertionError as e:
-    st.write(f"Assertion Error: {e}")
+    except Exception as e:
+        st.write(f"Erreur lors de l'ajout de l'arête de {parent} à {child}: {e}")
+
+# ... (le reste du code est inchangé)
+
 
 # Affichage du graphe
 net.save_graph("temp.html")
