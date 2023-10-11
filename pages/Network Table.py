@@ -26,8 +26,9 @@ d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 # Dictionnaire de couleurs
 app_module_colors = {module: random_color() for module in d365_tables['App module'].unique() if module}
 
-# Sélection de la table centrale
-all_tables = sorted(d365_tables['Table name'].unique())
+# Barre de recherche pour les tables
+search_term_table = st.text_input("Rechercher une table")
+all_tables = sorted([x for x in d365_tables['Table name'].unique() if x and (search_term_table.lower() in x.lower())])
 central_table = st.selectbox('Table centrale:', all_tables)
 
 # Trouver les tables connectées
@@ -62,7 +63,7 @@ with open("temp.html", 'r', encoding='utf-8') as f:
     source_code = f.read()
 st.components.v1.html(source_code, height=800)
 
-# Afficher le tableau résumé sous le graphe
+# Afficher le tableau résumé
 st.write("### Tableau résumé")
 summary_df = pd.DataFrame(list(app_module_counter.items()), columns=["Module d'application", "Nombre de relations"])
 st.write(summary_df)
