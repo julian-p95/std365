@@ -5,7 +5,7 @@ from pyvis.network import Network
 import streamlit as st
 
 # Titre pour la première page
-st.title("Graphe centré sur une table")
+st.title("Graphe centré Table")
 
 # Fonction pour générer une couleur aléatoire
 def random_color():

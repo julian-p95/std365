@@ -6,7 +6,7 @@ erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
 # Titre pour la page
-st.title("App module")
+st.title("Détails App module")
 
 
 # Sélection de l'App module

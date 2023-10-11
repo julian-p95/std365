@@ -7,7 +7,7 @@ from collections import Counter
 import streamlit as st
 
 # Titre pour la première page
-st.title("Graphe des Tables")
+st.title("Graphe App Module")
 
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))

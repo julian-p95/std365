@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 # Titre de la page
-st.title("Analyse des Tables ERP")
+st.title("App Module / Tables D365")
 
 # Lecture du fichier Excel
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
