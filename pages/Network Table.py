@@ -6,7 +6,8 @@ from collections import Counter
 import streamlit as st
 
 # Titre pour la première page
-st.title("Graphe ")
+st.title("Graphe centré sur une table")
+
 # Fonction pour générer une couleur aléatoire
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
@@ -54,5 +55,7 @@ for _, row in erp_relations.iterrows():
         net.add_edge(parent, child, title=relation)
 
 # Affichage du graphe
-net.show("temp.html")
-
+net.save_graph("temp.html")
+with open("temp.html", 'r', encoding='utf-8') as f:
+    source_code = f.read()
+st.components.v1.html(source_code, height=800)
