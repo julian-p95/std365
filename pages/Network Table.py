@@ -7,7 +7,7 @@ import streamlit as st
 # Titre pour la première page
 st.title("Graphe centré sur une table")
 
-# Fonction pour générer une couleur aléatoire
+# Générer une couleur aléatoire
 def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
@@ -15,7 +15,7 @@ def random_color():
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
-# Gérer les valeurs NaN
+# Gérer les NaN
 d365_tables['App module'] = d365_tables['App module'].fillna("Non spécifié")
 
 # Conversion en majuscules
@@ -23,7 +23,7 @@ erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.up
 erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.upper()
 d365_tables['Table name'] = d365_tables['Table name'].astype(str).str.upper()
 
-# Dictionnaire de couleurs pour chaque module d'application
+# Dictionnaire de couleurs
 app_module_colors = {module: random_color() for module in d365_tables['App module'].unique() if module}
 
 # Barre de recherche pour les tables
@@ -31,14 +31,14 @@ search_term_table = st.text_input("Rechercher une table")
 all_tables = sorted([x for x in d365_tables['Table name'].unique() if x and (search_term_table.lower() in x.lower())])
 central_table = st.selectbox('Table centrale:', all_tables)
 
-# Trouver toutes les tables connectées à la table centrale
+# Trouver les tables connectées
 connected_tables = set(erp_relations.loc[erp_relations['Table Parent'] == central_table, 'Table Enfant'].tolist())
 connected_tables.add(central_table)
 
 # Création du graphe
 net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
 
-# Ajout des nœuds avec leurs attributs
+# Ajout des nœuds
 for table in connected_tables:
     filtered_df = d365_tables[d365_tables['Table name'] == table]
     if not filtered_df.empty:
@@ -47,13 +47,13 @@ for table in connected_tables:
         color = app_module_colors.get(table_info['App module'], random_color())
         net.add_node(table, title=title_str, color=color)
 
-# Ajout des arêtes avec leurs attributs
-existing_nodes = set(net.get_nodes())  # Obtenir les nœuds existants
+# Ajout des arêtes
+existing_nodes = set(net.get_nodes())
 for _, row in erp_relations.iterrows():
     parent = row['Table Parent']
     child = row['Table Enfant']
     relation = row['Lien 1']
-    if parent in existing_nodes and child in existing_nodes:  # Vérification ajoutée ici
+    if parent in existing_nodes and child in existing_nodes:
         net.add_edge(parent, child, title=relation)
 
 # Affichage du graphe
