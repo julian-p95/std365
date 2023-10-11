@@ -33,6 +33,7 @@ central_table = st.selectbox('Table centrale:', all_tables)
 
 # Trouver les tables connectées
 connected_tables = set(erp_relations.loc[erp_relations['Table Parent'] == central_table, 'Table Enfant'].tolist())
+connected_tables |= set(erp_relations.loc[erp_relations['Table Enfant'] == central_table, 'Table Parent'].tolist())
 connected_tables.add(central_table)
 
 # Création du graphe
