@@ -55,6 +55,8 @@ for _, row in erp_relations.iterrows():
     relation = row['Lien 1']
     if parent in existing_nodes and child in existing_nodes:
         net.add_edge(parent, child, title=relation)
+    else:
+        st.write(f"Skipped edge from {parent} to {child} as one or both nodes are missing.")
 
 # Affichage du graphe
 net.save_graph("temp.html")
