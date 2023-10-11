@@ -1,6 +1,5 @@
-# Importer les bibliothèques nécessaires
-import random
 import pandas as pd
+import random
 from pyvis.network import Network
 from collections import Counter
 import streamlit as st
@@ -41,13 +40,12 @@ net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black
 
 # Ajout des nœuds avec leurs attributs
 for table in connected_tables:
-    filtered_df = d365_tables[d365_tables['Table name'].str.upper() == table.upper()]
+    filtered_df = d365_tables[d365_tables['Table name'] == table]
     if not filtered_df.empty:
         table_info = filtered_df.iloc[0]
         title_str = "\n".join([f"{col}: {table_info[col]}" for col in table_info.index if pd.notna(table_info[col])])
         color = app_module_colors.get(table_info['App module'], random_color())
         net.add_node(table, title=title_str, color=color)
-
 
 # Ajout des arêtes avec leurs attributs
 for _, row in erp_relations.iterrows():
