@@ -50,3 +50,44 @@ legend_html += "</div>"
 st.markdown(legend_html, unsafe_allow_html=True)
 
 # Le reste du code pour la création du graphe et l'affichage du tableau résumé reste le même
+
+# Création du graphe
+net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black")
+
+# Ajout des nœuds et comptage des modules d'application
+app_module_counter = {}
+for table in connected_tables:
+    filtered_df = d365_tables[d365_tables['Table name'] == table]
+    if not filtered_df.empty:
+        table_info = filtered_df.iloc[0]
+        app_module = table_info['App module']
+        if app_module not in selected_app_modules:
+            continue
+        title_str = "\n".join([f"{col}: {table_info[col]}" for col in table_info.index if pd.notna(table_info[col])])
+        color = app_module_colors.get(app_module, random_color())
+        net.add_node(table, title=title_str, color=color)
+        app_module_counter[app_module] = app_module_counter.get(app_module, 0) + 1
+
+# Afficher le tableau résumé
+st.write("### Tableau résumé")
+summary_df = pd.DataFrame(list(app_module_counter.items()), columns=["Module d'application", "Nombre de relations"])
+st.write(summary_df)
+
+# Ajout des arêtes
+existing_nodes = set(net.get_nodes())
+for _, row in erp_relations.iterrows():
+    try:
+        parent = row['Table Parent']
+        child = row['Table Enfant']
+        relation = row['Lien 1']
+        if parent in existing_nodes and child in existing_nodes:
+            net.add_edge(parent, child, title=relation)
+    except Exception as e:
+        st.write(f"Erreur lors de l'ajout de l'arête de {parent} à {child}: {e}")
+
+# Affichage du graphe
+net.save_graph("temp.html")
+with open("temp.html", 'r', encoding='utf-8') as f:
+    source_code = f.read()
+st.components.v1.html(source_code, height=800)
+
