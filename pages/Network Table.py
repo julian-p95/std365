@@ -97,6 +97,7 @@ for module in selected_app_modules:
         st.write(f"#### {module}")
         module_df = pd.DataFrame({
             "Table connectée": module_tables,
-            "Relation": [erp_relations[(erp_relations['Table Parent'] == central_table) & (erp_relations['Table Enfant'] == table)]['Lien 1'].iloc[0] for table in module_tables]
+            "Relation": [erp_relations[(erp_relations['Table Parent'] == central_table) & (erp_relations['Table Enfant'] == table)]['Lien 1'].iloc[0] if not erp_relations[(erp_relations['Table Parent'] == central_table) & (erp_relations['Table Enfant'] == table)].empty else 'Inconnu' for table in module_tables]
         })
         st.write(module_df)
+

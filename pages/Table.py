@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 # Titre pour la deuxième page
-st.title("Informations sur les Tables")
+st.title("Page 2: Informations sur les Tables")
 
 # Lecture des fichiers Excel pour cette page
 field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
@@ -27,16 +27,22 @@ all_relations = erp_relations[
     (erp_relations['Table Enfant'] == table_choice)
 ]
 
-# Obtenir les modules d'application pour chaque table liée
-all_relations_with_app_module = pd.merge(
-    all_relations, d365_tables[['Table name', 'App module']], 
-    left_on='Table Enfant', right_on='Table name', how='left'
-)
+if all_relations.empty:
+    st.write("Aucune relation trouvée pour cette table.")
+else:
+    # Obtenir les modules d'application pour chaque table liée
+    all_relations_with_app_module = pd.merge(
+        all_relations, d365_tables[['Table name', 'App module']], 
+        left_on='Table Enfant', right_on='Table name', how='left'
+    )
 
-# Groupement par App Module
-grouped_relations = all_relations_with_app_module.groupby('App module')
+    # Groupement par App Module
+    grouped_relations = all_relations_with_app_module.groupby('App module')
 
-# Afficher le tableau détaillé des relations pour chaque App Module
-for app_module, group_data in grouped_relations:
-    st.write(f"### Relations avec l'App Module: {app_module}")
-    st.table(group_data[['Table Parent', 'Table Enfant', 'Lien 1']])
+    # Afficher le tableau détaillé des relations pour chaque App Module
+    for app_module, group_data in grouped_relations:
+        st.write(f"### Relations avec l'App Module: {app_module}")
+        if group_data.empty:
+            st.write(f"Aucune relation trouvée pour l'App Module: {app_module}")
+        else:
+            st.table(group_data[['Table Parent', 'Table Enfant', 'Lien 1']])
