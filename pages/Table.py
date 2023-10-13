@@ -4,20 +4,17 @@ import pandas as pd
 import streamlit as st
 
 # Titre pour la deuxième page
-st.title("Page 2: Informations sur les Tables")
+st.title("Informations sur les Tables")
 
 # Lecture des fichiers Excel pour cette page
 field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
 erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
 d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
 
-# Conversion des noms de tables en majuscules
+# Conversion en majuscules
 field_list['TABLE_NAME'] = field_list['TABLE_NAME'].astype(str).str.upper()
 erp_relations['Table Parent'] = erp_relations['Table Parent'].astype(str).str.upper()
 erp_relations['Table Enfant'] = erp_relations['Table Enfant'].astype(str).str.upper()
-
-# Barre de recherche pour les tables
-search_term_table = st.text_input("Rechercher une table (sous le graphe)")
 
 # Tableau pour la sélection de la table et l'affichage des champs
 table_choice = st.selectbox('Choisissez une table pour afficher ses champs:', field_list['TABLE_NAME'].unique())

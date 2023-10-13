@@ -12,8 +12,8 @@ def random_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 # Lecture des fichiers Excel
-erp_relations = pd.read_excel("erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
-d365_tables = pd.read_excel("D365FO.xlsx", sheet_name='D365 Table')
+erp_relations = pd.read_excel("/mnt/data/erp_all_table_relations_finalV2.xlsx", sheet_name='Sheet1')
+d365_tables = pd.read_excel("/mnt/data/D365FO.xlsx", sheet_name='D365 Table')
 
 # Gérer les NaN
 d365_tables['App module'] = d365_tables['App module'].fillna("Non spécifié")
@@ -92,7 +92,7 @@ st.components.v1.html(source_code, height=800)
 # Afficher plusieurs tableaux résumés, un par module d'application
 st.write("### Tableaux résumés")
 for module in selected_app_modules:
-    module_tables = [table for table in connected_tables if d365_tables[d365_tables['Table name'] == table]['App module'].iloc[0] == module]
+    module_tables = [table for table in connected_tables if not d365_tables[d365_tables['Table name'] == table].empty and d365_tables[d365_tables['Table name'] == table]['App module'].iloc[0] == module]
     if module_tables:
         st.write(f"#### {module}")
         module_df = pd.DataFrame({
