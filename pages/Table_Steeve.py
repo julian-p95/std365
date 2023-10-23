@@ -11,9 +11,7 @@ st.title("Tables' Field, Data by Steeve")
 field_list = pd.read_excel("Table_Steeve.xlsx")  
 field_list['TableName'] = field_list['TableName'].astype(str).str.upper()  # Convertir en majuscules
 
-# Barre de recherche pour les tables
-# Utilisez cette fonction si vous souhaitez ajouter une fonction de recherche
-search_term_table = st.text_input("Rechercher une table (sous le graphe)")
+
 
 # Sélection de la table et affichage des champs
 # Remplacer 'TABLE_NAME' et 'COLUMN_NAME', 'DATA_TYPE' par les noms des colonnes correspondants
