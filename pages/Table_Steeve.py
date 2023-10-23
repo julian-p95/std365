@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 # Titre de la page
-st.title("Page 2: Informations sur les Tables")
+st.title("Tables' Field, Data by Steeve 20/10/2023")
 
 # Lecture du fichier Excel
 # Changer le nom du fichier et la feuille si nécessaire
