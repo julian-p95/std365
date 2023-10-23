@@ -3,7 +3,7 @@
 import pandas as pd
 import streamlit as st
 
-# Titre de la page
+
 st.title("Tables' Field, Data by Steeve")
 
 # Lecture du fichier Excel
