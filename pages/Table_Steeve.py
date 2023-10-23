@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-st.title("Tables' Field, Data by Steeve")
+st.title("Tables / Fields, Data by Steeve")
 
 # Lecture du fichier Excel
 # Changer le nom du fichier et la feuille si nécessaire
