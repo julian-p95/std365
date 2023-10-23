@@ -28,6 +28,6 @@ total_relations_count = filtered_relations['Table Parent'].value_counts().reset_
 total_relations_count.columns = ['Table name', 'Total Relations']
 filtered_tables = pd.merge(filtered_tables, total_relations_count, on='Table name', how='left')
 
-# Trie les tables par le nombre total de relations et affiche les 20 premières
-filtered_tables = filtered_tables.sort_values(by='Total Relations', ascending=False).head(20)
+# Trie les tables par le nombre total de relations et affiche les 50 premières
+filtered_tables = filtered_tables.sort_values(by='Total Relations', ascending=False).head(50)
 st.table(filtered_tables[['Table name', 'Table label', 'Table group', 'Tabletype', 'Total Relations']])
