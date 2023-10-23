@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 # Titre pour la deuxième page
-st.title("Page 2: Informations sur les Tables")
+st.title("Informations sur les Tables")
 
 # Lecture des fichiers Excel pour cette page
 field_list = pd.read_excel("Table and Field List.xlsx", sheet_name='Field List')
